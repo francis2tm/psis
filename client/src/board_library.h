@@ -2,13 +2,16 @@
 #define _BOARD_LIBRARY_H
 
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
-typedef struct board_place{
+typedef struct Board_Place{
   char v[3];
-} board_place;
+} Board_Place;
 
-typedef struct play_response{
-  int code; // 0 - filled
+typedef struct Play_Response{
+  int code;  
+            // 0 - filled
             // 1 - 1st play
             // 2 2nd - same plays
             // 3 END
@@ -16,10 +19,12 @@ typedef struct play_response{
   int play1[2];
   int play2[2];
   char str_play1[3], str_play2[3];
-} play_response;
+}Play_Response;
 
-char * get_board_place_str(int i, int j);
-void init_board(int dim);
-play_response board_play (int x, int y);
+int linearConv(int i, int j);   
+                              
+char* getBoardPlaceStr(int i, int j);
+void initBoard(int dim);
+Play_Response boardPlay (int x, int y);
 
 #endif
