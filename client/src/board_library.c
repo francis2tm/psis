@@ -1,7 +1,7 @@
 #include "board_library.h"
 
 int dim = 4;
-Board_Place** board;
+Board_Place** board = NULL;
 
 
 int play1[2];
@@ -19,6 +19,7 @@ void initBoard(){
 	board = (Board_Place**)malloc(sizeof(Board_Place)*dim);
 	verifyErr(board, 'm');
 	for(i = 0; i < dim; i++){
+        board[i] = NULL;
 		board[i] = (Board_Place*)malloc(sizeof(Board_Place)*dim);
 		if(board == NULL){
 			verifyErr(board[i], 'm');

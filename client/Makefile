@@ -3,7 +3,7 @@
 
 TARGET_EXEC ?= a.out
 LDFLAGS = `pkg-config --cflags --libs sdl2` -lSDL2_ttf -lpthread
-CFLAGS = -g -Wall -pedantic -std=c99
+CFLAGS = -g -Wall -std=c99
 CC =gcc
 
 BUILD_DIR ?= ./build

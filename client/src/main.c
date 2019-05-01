@@ -62,7 +62,6 @@ int main(){
 	}
 	printf("fim\n");
 	//closeBoardWindows();
-	//SDL_Quit();
 
 	//Free no board
 	/*for(int i = 0; i < dim; i++){

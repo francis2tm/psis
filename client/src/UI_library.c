@@ -13,26 +13,15 @@ SDL_Renderer* renderer = NULL;
 
 
 void writeCard(int  board_x, int board_y, char * text, int r, int g, int b){
-	SDL_Rect rect;
-	SDL_Color color;
+	SDL_Rect rect = {.h = row_height+1, .w = col_width+1, .x = board_x * col_width, .y = board_y * row_height};
+	SDL_Color color = {.r = r, .g = g, .b = b, .a = SDL_ALPHA_OPAQUE};
 	SDL_Surface* surface;
 	SDL_Texture* Background_Tx;
-
-	rect.x = board_x * col_width;
-	rect.y = board_y * row_height;
-	rect.w = col_width+1;
-	rect.h = row_height+1;
-
-
 	TTF_Font * font = TTF_OpenFont("arial.ttf", row_height);
 
 	/*int text_x = board_x * col_width;
 	int text_y = board_y * row_height;*/
-
-	color.r = r;
-	color.g = g;
-	color.b = b;
-	color.a = 255;
+	
  	surface = TTF_RenderText_Solid(font, text, color);
 
 	Background_Tx = SDL_CreateTextureFromSurface(renderer, surface);
@@ -40,9 +29,8 @@ void writeCard(int  board_x, int board_y, char * text, int r, int g, int b){
 
 
 	SDL_RenderCopy(renderer, Background_Tx, NULL, &rect);
-	SDL_Delay(50);
 	SDL_RenderPresent(renderer);
-	SDL_Delay(50);
+	SDL_Delay(1);
 
 }
 
@@ -54,14 +42,16 @@ void paintCard(int  board_x, int board_y , int r, int g, int b){
 	rect.y = board_y * row_height;
 	rect.w = col_width+1;
 	rect.h = row_height+1;
+
 	SDL_SetRenderDrawColor(renderer, r, g, b, SDL_ALPHA_OPAQUE);
 	SDL_RenderFillRect(renderer, &rect);
 
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
 	SDL_RenderDrawRect(renderer, &rect);
 
-	SDL_Delay(50);
+	
 	SDL_RenderPresent(renderer);
+	SDL_Delay(1);
 }
 
 void clearCard(int  board_x, int board_y){
@@ -101,12 +91,11 @@ int createBoardWindow(int width, int height){
 	}
 	SDL_Delay(50);
 	SDL_RenderPresent(renderer);
-	SDL_Delay(50);
+	SDL_Delay(1);
 	return 1;
 }
 
 void closeBoardWindows(){
-	SDL_Delay(50);
 	if (renderer) {
 		SDL_DestroyRenderer(renderer);
 	}
