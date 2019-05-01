@@ -1,8 +1,11 @@
 #include "main.h"
 
+<<<<<<< HEAD
 extern Board_Place** board;
 extern int dim;
 
+=======
+>>>>>>> fa22c4381a3c322722a3b62ab079ebc4bd2ec497
 int main(){
 	
 	SDL_Event event;
@@ -17,8 +20,13 @@ int main(){
 			exit(2);
 	}
 	
+<<<<<<< HEAD
 	createBoardWindow(300, 300);
 	initBoard();
+=======
+	createBoardWindow(300, 300, 4);
+	initBoard(4);
+>>>>>>> fa22c4381a3c322722a3b62ab079ebc4bd2ec497
 
 	while (!done){
 		while (SDL_PollEvent(&event)){
@@ -34,19 +42,31 @@ int main(){
 					printf("click (%d %d) -> (%d %d)\n", event.button.x, event.button.y, board_x, board_y);
 					Play_Response resp = boardPlay(board_x, board_y);
 					switch (resp.code){
+<<<<<<< HEAD
 						case 1:		//Primeira jogada
+=======
+						case 1:
+>>>>>>> fa22c4381a3c322722a3b62ab079ebc4bd2ec497
 							paintCard(resp.play1[0], resp.play1[1] , 7, 200, 100);
 							writeCard(resp.play1[0], resp.play1[1], resp.str_play1, 200, 200, 200);
 							break;
 						case 3:		//Acabou o jogo (todas as cartas tao up)
 						  done = 1;
+<<<<<<< HEAD
 						case 2:		//Jogar 2x e acertar na combinação
+=======
+						case 2:
+>>>>>>> fa22c4381a3c322722a3b62ab079ebc4bd2ec497
 							paintCard(resp.play1[0], resp.play1[1], 107, 200, 100);
 							writeCard(resp.play1[0], resp.play1[1], resp.str_play1, 0, 0, 0);
 							paintCard(resp.play2[0], resp.play2[1], 107, 200, 100);
 							writeCard(resp.play2[0], resp.play2[1], resp.str_play2, 0, 0, 0);
 							break;
+<<<<<<< HEAD
 						case -2:	//Jogar 2x e falhar na combinação
+=======
+						case -2:
+>>>>>>> fa22c4381a3c322722a3b62ab079ebc4bd2ec497
 							paintCard(resp.play1[0], resp.play1[1], 107, 200, 100);
 							writeCard(resp.play1[0], resp.play1[1], resp.str_play1, 255, 0, 0);
 							paintCard(resp.play2[0], resp.play2[1], 107, 200, 100);
@@ -61,6 +81,7 @@ int main(){
 		}
 	}
 	printf("fim\n");
+<<<<<<< HEAD
 	//closeBoardWindows();
 	//SDL_Quit();
 
@@ -69,4 +90,7 @@ int main(){
 		free(board[i]);
 	}
 	free(board);*/
+=======
+	closeBoardWindows();
+>>>>>>> fa22c4381a3c322722a3b62ab079ebc4bd2ec497
 }

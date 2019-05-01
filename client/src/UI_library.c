@@ -1,6 +1,9 @@
 #include "UI_library.h"
+<<<<<<< HEAD
 
 extern int dim;
+=======
+>>>>>>> fa22c4381a3c322722a3b62ab079ebc4bd2ec497
 
 int screen_width;
 int screen_height;
@@ -99,18 +102,30 @@ int createBoardWindow(int width, int height){
 	for (int i = 0; i < n_ronw_cols+1; i++){
 		SDL_RenderDrawLine(renderer, i*col_width, 0, i*col_width, screen_height);
 	}
+<<<<<<< HEAD
 	SDL_Delay(50);
 	SDL_RenderPresent(renderer);
 	SDL_Delay(50);
+=======
+
+	SDL_Delay(50);
+
+	SDL_RenderPresent(renderer);
+
+>>>>>>> fa22c4381a3c322722a3b62ab079ebc4bd2ec497
 	return 1;
 }
 
 void closeBoardWindows(){
+<<<<<<< HEAD
 	SDL_Delay(50);
+=======
+>>>>>>> fa22c4381a3c322722a3b62ab079ebc4bd2ec497
 	if (renderer) {
 		SDL_DestroyRenderer(renderer);
 	}
 	if (window) {
 		SDL_DestroyWindow(window);
 	}
+	SDL_Quit();
 }
