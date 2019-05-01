@@ -17,6 +17,7 @@ typedef struct Play_Response{
             // 1 - 1st play
             // 2 2nd - same plays
             // 3 END
+            // -1 2nd - virar primeira jogada para baixo
             // -2 2nd - diffrent
   int play1[2];
   int play2[2];

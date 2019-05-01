@@ -2,7 +2,7 @@
 #Basta meter todos os .c e .h numa pasta chamada "src", a MakeFile não estará nessa pasta.
 
 TARGET_EXEC ?= a.out
-LDFLAGS = `pkg-config --cflags --libs sdl2` -lSDL2_ttf -lpthread
+LDFLAGS = `pkg-config --cflags --libs sdl2` -lSDL2_ttf
 CFLAGS = -g -Wall -std=c99
 CC =gcc
 

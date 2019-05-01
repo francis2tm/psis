@@ -1,0 +1,23 @@
+/*****Estruturas de Dados*****/
+
+-Não usámos o vetor unidimensional do professor para tirar a necessidade das funções "linearConv" e "getBoardPlaceStr" visto que se estas não forem 
+postas como "inline" pelo compilador, a maneira do prof acaba por ser menos eficiente (pq fazer matriz[][] ou matrizz[i*dim + j] é essencialmente
+a mesma coisa) aceder a elementos .Usando [j][i] ou [j * 4 + i] corresponde aos mesmos cálculos em assembly, logo, usámos uma matriz 
+dim por dim para guardar as posições do board.
+
+-Na estrutura Play_Response não era preciso ter as strings str_play1 e str_play2 pois indo ver as strings do board associadas às coordenadas à play1 e play2.
+Mas como fazer as desreferenciações board[play1[0]][pla1[1]].str envolve muitas operações, decidimos continuar as strings associadas a cada jogada nos str_play1 e str_play2 
+(membros da estrutura Play_Response). Não utilizámos ponteiros para a string do board porque um ponteiro num OS de 64bit tem o tamanho de 8bytes que é
+bastante superior ao tamanho do vetor de 3 chars (3*1byte).
+
+-Retirámos o int play1[2] porque já existe as mesmas coordenadas xy em resp.play1 e para ver se estamos na segunda ou primeira jogada, adicionámos um char n_play
+(q só tem 1byte face aos 2*4bytes de int play1[2])
+
+/*********************************PERGUNTAR*****************************************/
+
+/*********************************TO_DO*****************************************/
+-Verificar dim tem q ser par
+-No final dizer expliciatamente quais as estruturas de dados do stor que cagámos
+-Fazer free() da board e closeBoardWindows()
+-Meter o .code do Play_Response a char
+-Qd so ha um jogador, o server é que descarda as jogadas desse jogador

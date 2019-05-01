@@ -1,6 +1,0 @@
-{
-    "files.associations": {
-        "ui_library.h": "c",
-        "board_library.h": "c"
-    }
-}

@@ -1,7 +1,8 @@
 #include "main.h"
 
-extern Board_Place** board;
-extern int dim;
+Board_Place** board = NULL;;
+int dim = 4;
+
 
 int main(){
 	
@@ -32,28 +33,37 @@ int main(){
 					getBoardCard(event.button.x, event.button.y, &board_x, &board_y);
 
 					printf("click (%d %d) -> (%d %d)\n", event.button.x, event.button.y, board_x, board_y);
-					Play_Response resp = boardPlay(board_x, board_y);
-					switch (resp.code){
+					Play_Response _resp = boardPlay(board_x, board_y);
+					switch (_resp.code){
 						case 1:		//Primeira jogada
-							paintCard(resp.play1[0], resp.play1[1] , 7, 200, 100);
-							writeCard(resp.play1[0], resp.play1[1], resp.str_play1, 200, 200, 200);
+							paintCard(_resp.play1[0], _resp.play1[1], 7, 200, 100);
+							writeCard(_resp.play1[0], _resp.play1[1], _resp.str_play1, 200, 200, 200);
+							board[board_x][board_y].is_up = 1;
 							break;
 						case 3:		//Acabou o jogo (todas as cartas tao up)
 						  done = 1;
 						case 2:		//Jogar 2x e acertar na combinação
-							paintCard(resp.play1[0], resp.play1[1], 107, 200, 100);
-							writeCard(resp.play1[0], resp.play1[1], resp.str_play1, 0, 0, 0);
-							paintCard(resp.play2[0], resp.play2[1], 107, 200, 100);
-							writeCard(resp.play2[0], resp.play2[1], resp.str_play2, 0, 0, 0);
+							paintCard(_resp.play1[0], _resp.play1[1], 107, 200, 100);
+							writeCard(_resp.play1[0], _resp.play1[1], _resp.str_play1, 0, 0, 0);
+							paintCard(_resp.play2[0], _resp.play2[1], 107, 200, 100);
+							writeCard(_resp.play2[0], _resp.play2[1], _resp.str_play2, 0, 0, 0);
+							board[board_x][board_y].is_up = 1;
 							break;
 						case -2:	//Jogar 2x e falhar na combinação
-							paintCard(resp.play1[0], resp.play1[1], 107, 200, 100);
-							writeCard(resp.play1[0], resp.play1[1], resp.str_play1, 255, 0, 0);
-							paintCard(resp.play2[0], resp.play2[1], 107, 200, 100);
-							writeCard(resp.play2[0], resp.play2[1], resp.str_play2, 255, 0, 0);
+							paintCard(_resp.play1[0], _resp.play1[1], 107, 200, 100);
+							writeCard(_resp.play1[0], _resp.play1[1], _resp.str_play1, 255, 0, 0);
+							paintCard(_resp.play2[0], _resp.play2[1], 107, 200, 100);
+							writeCard(_resp.play2[0], _resp.play2[1], _resp.str_play2, 255, 0, 0);
+							board[board_x][board_y].is_up = 1;
 							sleep(2);
-							paintCard(resp.play1[0], resp.play1[1], 255, 255, 255);
-							paintCard(resp.play2[0], resp.play2[1], 255, 255, 255);
+							paintCard(_resp.play1[0], _resp.play1[1], 255, 255, 255);
+							paintCard(_resp.play2[0], _resp.play2[1], 255, 255, 255);
+							board[_resp.play1[0]][_resp.play1[1]].is_up = 0;
+							board[board_x][board_y].is_up = 0;
+							break;
+						case -1:
+							paintCard(_resp.play1[0], _resp.play1[1], 255, 255, 255);
+							board[_resp.play1[0]][_resp.play1[1]].is_up = 0;
 							break;
 					}
 				}
@@ -69,3 +79,4 @@ int main(){
 	}
 	free(board);*/
 }
+ 

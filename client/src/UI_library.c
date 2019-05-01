@@ -54,10 +54,6 @@ void paintCard(int  board_x, int board_y , int r, int g, int b){
 	SDL_Delay(1);
 }
 
-void clearCard(int  board_x, int board_y){
-	paintCard(board_x, board_y , 255, 255, 255);
-}
-
 void getBoardCard(int mouse_x, int mouse_y, int * board_x, int *board_y){
 	*board_x = mouse_x / col_width;
 	*board_y = mouse_y / row_height;

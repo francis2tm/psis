@@ -1,22 +1,22 @@
 #include "board_library.h"
 
-int dim = 4;
-Board_Place** board = NULL;
+extern int dim;
+extern Board_Place** board;
 
-
-int play1[2];
 int n_corrects;
+Play_Response resp;
+char n_play = 0;       //0- n fez nenhuma jogada 1- ja fez 1 jogada
 
-void initBoard(){
-  int count  = 0;
-  int i, j;
-  char* str_place;
+void initBoard(void){
+    int count  = 0;
+    int i, j;
+    char* str_place;
 
-  n_corrects = 0;
-  play1[0]= -1;
+    resp.code = 0;
+    resp.play1[0] = -1;
   
     //Alocar a matriz
-	board = (Board_Place**)malloc(sizeof(Board_Place)*dim);
+	board = malloc(sizeof(Board_Place)*dim);
 	verifyErr(board, 'm');
 	for(i = 0; i < dim; i++){
         board[i] = NULL;
@@ -34,29 +34,29 @@ void initBoard(){
 	 	}
 	}
 
-  for (char c1 = 'a' ; c1 < ('a'+dim); c1++){
-    for (char c2 = 'a' ; c2 < ('a'+dim); c2++){
-        do{
-            i = rand() % dim;
-            j = rand() % dim;
-            str_place = board[i][j].str;
-            printf("%d %d -%s-\n", i, j, str_place);
-        }while(str_place[0] != '\0');
-        str_place[0] = c1;
-        str_place[1] = c2;
-        str_place[2] = '\0';
-        do{
-            i = rand() % dim;
-            j = rand() % dim;
-            str_place = board[i][j].str;
-            printf("%d %d -%s-\n", i, j, str_place);
-        }while(str_place[0] != '\0');
-        str_place[0] = c1;
-        str_place[1] = c2;
-        str_place[2] = '\0';
-        count += 2;
-        if (count == dim*dim){
-            return;
+    for (char c1 = 'a' ; c1 < ('a'+dim); c1++){
+        for (char c2 = 'a' ; c2 < ('a'+dim); c2++){
+            do{
+                i = rand() % dim;
+                j = rand() % dim;
+                str_place = board[i][j].str;
+                printf("%d %d -%s-\n", i, j, str_place);
+            }while(str_place[0] != '\0');
+            str_place[0] = c1;
+            str_place[1] = c2;
+            str_place[2] = '\0';
+            do{
+                i = rand() % dim;
+                j = rand() % dim;
+                str_place = board[i][j].str;
+                printf("%d %d -%s-\n", i, j, str_place);
+            }while(str_place[0] != '\0');
+            str_place[0] = c1;
+            str_place[1] = c2;
+            str_place[2] = '\0';
+            count += 2;
+            if (count == dim*dim){
+                return;
             }
         }
     }
@@ -64,54 +64,45 @@ void initBoard(){
 
 Play_Response boardPlay(int x, int y){
 
-    Play_Response resp;
-    resp.code =10;
-
-    if(strcmp(board[x][y].str, "")==0){
-        printf("FILLED\n");
-        resp.code =0;
-    }else{
-        if(play1[0]== -1){
-            printf("FIRST\n");
-            resp.code =1;
-
-            play1[0]=x;
-            play1[1]=y;
-            resp.play1[0]= play1[0];
-            resp.play1[1]= play1[1];
-            strcpy(resp.str_play1, board[x][y].str);
+    if(board[x][y].is_up){
+        if(resp.code == 1){    //Se for a segunda jogada e for para virar a primeira carta para baixo
+            resp.code = -1;
+            n_play = 0;
         }else{
-            char * first_str = board[play1[0]][play1[1]].str;
-            char * secnd_str = board[x][y].str;
-
-            if((play1[0]==x) && (play1[1]==y)){
-            resp.code =0;
             printf("FILLED\n");
-            }else{
-                resp.play1[0]= play1[0];
-                resp.play1[1]= play1[1];
-                strcpy(resp.str_play1, first_str);
-                resp.play2[0]= x;
-                resp.play2[1]= y;
-                strcpy(resp.str_play2, secnd_str);
+            resp.code = 0;
+        }
+    }else{
+        if(!n_play){            //Se for a primeira jogada
+            printf("FIRST\n");
+            resp.code = 1;
+            n_play = 1;
+            resp.play1[0] = x;
+            resp.play1[1] = y;
+            strcpy(resp.str_play1, board[x][y].str);
+        }else{                  //Se for a segunda jogada
+            char* first_str = board[resp.play1[0]][resp.play1[1]].str;
+            char* secnd_str = board[x][y].str;
 
-                if (strcmp(first_str, secnd_str) == 0){
-                    printf("CORRECT!!!\n");
+            strcpy(resp.str_play1, first_str);
+            resp.play2[0] = x;
+            resp.play2[1] = y;
+            strcpy(resp.str_play2, secnd_str);
 
-                    strcpy(first_str, "");
-                    strcpy(secnd_str, "");
+            if (!strcmp(first_str, secnd_str)){
+                printf("CORRECT!!!\n");
 
-                    n_corrects +=2 ;
-                    if (n_corrects == dim*dim)
-                        resp.code = 3;
-                    else
-                    resp.code = 2;
+                n_corrects += 2;
+                if (n_corrects == dim*dim){
+                    resp.code = 3;
                 }else{
-                    printf("INCORRECT\n");
-                    resp.code = -2;
+                    resp.code = 2;
                 }
-                play1[0]= -1;
+            }else{
+                printf("INCORRECT\n");
+                resp.code = -2;
             }
+            n_play = 0;
         }
     }
     return resp;
