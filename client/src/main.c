@@ -1,6 +1,6 @@
 #include "main.h"
 
-Board_Place** board = NULL;;
+Board_Place** board = NULL;
 int dim = 4;
 
 
