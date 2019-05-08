@@ -1,8 +1,8 @@
 #Esta makefile faz tudo automáticamente, procura os sources e ainda faz a gestão das dependências automaticamente. 
 #Basta meter todos os .c e .h numa pasta chamada "src", a MakeFile não estará nessa pasta.
 
-TARGET_EXEC ?= server
-LDFLAGS = `pkg-config --cflags --libs sdl2` -lSDL2_ttf -lpthread
+TARGET_EXEC ?=server
+LDFLAGS = -lpthread
 CFLAGS = -g -Wall -std=c11
 CC =gcc
 

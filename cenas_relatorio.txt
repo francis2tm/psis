@@ -14,6 +14,29 @@ bastante superior ao tamanho do vetor de 3 chars (3*1byte).
 (q só tem 1byte face aos 2*4bytes de int play1[2])
 
 /*********************************PERGUNTAR*****************************************/
+-Servidor: Precisamos do (struct sockaddr*)&client_addr (preenchido no accept)?
+    Ya, pq há OS que precisam disso senão a socket pode não funfar
+
+- Como enviar um vetor de inteiros numa socket?
+    Envia-se normalmente, só há problemas com o diferente tamanho de inteiros em diferentes maquinas quando tou a mandar estruturas
+
+- Temos que usar htonl() no envio e ntohl() qd se recebe?
+    Nem por isso, usar o memcpy() é a melhor maneira
+
+- Podemos fazer assim sem alocar memoria e sem fazer memcpy() https://stackoverflow.com/questions/9140409/transfer-integer-over-a-socket-in-c?
+    Usar o memcpy() é mm a melhor maneira
+
+- read() vs recv()?
+    Usar read() quando n quero usar as flags do recv
+
+- Para ter os timers, fazer inicialmente para cada cliente que se conecta 2 threads, uma para timer?
+    Tenho que exprimentar para ver se dá para fazer a comunicacao inter-threads com sinais
+
+- Tenho que fazer void* no handler de threads?
+    Ya
+
+- Posso ter aqueles dois timers para quando erro numa combinacao? um timer no servidor e um sleep no cliente?
+    Nao é preciso, basta um sleep na thread respetiva do cliente
 
 /*********************************TO_DO*****************************************/
 -Verificar dim tem q ser par
@@ -21,3 +44,8 @@ bastante superior ao tamanho do vetor de 3 chars (3*1byte).
 -Fazer free() da board e closeBoardWindows()
 -Meter o .code do Play_Response a char
 -Qd so ha um jogador, o server é que descarda as jogadas desse jogador
+-Meter htonl() onde for necessario para isto funfar em AF_INET
+
+
+/*********************************BUGS******************************************/
+-QUando o cliente desconecta durante o sleep(2), o servidor acaba o processo

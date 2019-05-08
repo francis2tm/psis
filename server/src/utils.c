@@ -1,4 +1,4 @@
-#include "utlis.h"
+#include "utils.h"
 
 void verifyErr(void *p, char type){
   if(p == NULL){
