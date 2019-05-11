@@ -1,17 +1,19 @@
-/*****Estruturas de Dados*****/
 
 -Não usámos o vetor unidimensional do professor para tirar a necessidade das funções "linearConv" e "getBoardPlaceStr" visto que se estas não forem 
 postas como "inline" pelo compilador, a maneira do prof acaba por ser menos eficiente (pq fazer matriz[][] ou matrizz[i*dim + j] é essencialmente
 a mesma coisa) aceder a elementos .Usando [j][i] ou [j * 4 + i] corresponde aos mesmos cálculos em assembly, logo, usámos uma matriz 
 dim por dim para guardar as posições do board.
 
--Na estrutura Play_Response não era preciso ter as strings str_play1 e str_play2 pois indo ver as strings do board associadas às coordenadas à play1 e play2.
-Mas como fazer as desreferenciações board[play1[0]][pla1[1]].str envolve muitas operações, decidimos continuar as strings associadas a cada jogada nos str_play1 e str_play2 
-(membros da estrutura Play_Response). Não utilizámos ponteiros para a string do board porque um ponteiro num OS de 64bit tem o tamanho de 8bytes que é
-bastante superior ao tamanho do vetor de 3 chars (3*1byte).
-
 -Retirámos o int play1[2] porque já existe as mesmas coordenadas xy em resp.play1 e para ver se estamos na segunda ou primeira jogada, adicionámos um char n_play
 (q só tem 1byte face aos 2*4bytes de int play1[2])
+
+-Para escolhermos a cor, fizemos de uma maneira já predefinida para n ter a necessidade de crirar uma cor random e dps ir verificar se essa cor já foi escolhida
+
+- Usamos a flag is_up para restringirmos a região critica a uma variável de 1byte e de modo a região crítica ser também de baixo nível
+
+- //Sempre que um jogador se desconecta, metemos o node correspondente da lista de jogadores no final de modo a ter sempre a lista de jogadores ordenada de acordo com o state
+
+- //Passamos um ponteiro como argumento para o handler de cada cliente pq a thread de cada clietne precisa de saber para além do respetivo sock_fd, o seu node na lista de jogadores (para depois fazer o swap se se disconectar para manter a lista ordenada)
 
 /*********************************PERGUNTAR*****************************************/
 -Servidor: Precisamos do (struct sockaddr*)&client_addr (preenchido no accept)?
@@ -38,14 +40,33 @@ bastante superior ao tamanho do vetor de 3 chars (3*1byte).
 - Posso ter aqueles dois timers para quando erro numa combinacao? um timer no servidor e um sleep no cliente?
     Nao é preciso, basta um sleep na thread respetiva do cliente
 
+- De acordo com a minha arquitetura, como fazer o broadcast inicial do estado do board atual a um novo jogador?
+    É so preciso enviar os pares que estão locked, portanto podemos fazer um vetor, já que sabemos o número max de pares que podem ser feitos
+
+- Como fazer o timer de 5s?
+    smp_wait (funcao do semáforo)
+
+- Qual a topologia do projeto?
+
+- Synchronization (on the server and client)? Porque é que também é preciso no client?
+
+- Tenho que fazer p_thread join no final?
+
+- Tenho de guardar os nós de todos os jogadores disconectados? Consigo apagar um nó da lista dos players (sempre que um player se disconecta) sem tornar a lista inteira numa região critica?
+
+- Para fazer a sync do is_up, o melhor a fazer é mutex em todos os elementos do board?
+
+- Bug do sleep(2)
+
+- No broadcast inicial, tenho que mandar as cartas UP (que estão para cima e que nao estao locked)? 
+
 /*********************************TO_DO*****************************************/
+-Descobrir onde é preciso Synchronization para além do is_up
 -Verificar dim tem q ser par
 -No final dizer expliciatamente quais as estruturas de dados do stor que cagámos
--Fazer free() da board e closeBoardWindows()
 -Meter o .code do Play_Response a char
 -Qd so ha um jogador, o server é que descarda as jogadas desse jogador
--Meter htonl() onde for necessario para isto funfar em AF_INET
-
-
-/*********************************BUGS******************************************/
--QUando o cliente desconecta durante o sleep(2), o servidor acaba o processo
+-Fazer proteções (tipo verificar dim dos (x,y) recebidos pelo cliente)
+-Meter os clientes disconectados no cu da lista de modo a quando queremos fazer updateboard n termos que varrer a lista toda (ela vai tar ordenada de acordo com o state dos players)
+-Limitar o numero de jogadores (por causa das cores) constantemente, sempre que um jogador se conecta
+-Meter um jogador em espera quando tá a jgoar e todos os players bazam

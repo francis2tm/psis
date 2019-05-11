@@ -3,6 +3,7 @@
         "main.h": "c",
         "board_library.h": "c",
         "ui_library.h": "c",
-        "unistd.h": "c"
+        "unistd.h": "c",
+        "limits": "c"
     }
 }

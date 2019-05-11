@@ -20,9 +20,11 @@ typedef struct Play_Response{
             // 2 2nd - same plays
             // 3 END
             // -1 2nd - virar primeira jogada para baixo
-            // -2 2nd - diffrent
+            // -2 2nd - combinação errada, meter as cartas vermelhas durante 2s
+            // -4 2nd - combinação errada, virar as cartas para branco  ao fim dos 2s
   int play1[2];
   int play2[2];
+  char color[3];
   char str_play1[3], str_play2[3];
 }Play_Response;
 
@@ -120,21 +122,21 @@ void* recvHandler(int sock_fd){
 void updateBoard(Play_Response resp){
 	switch (resp.code){
 		case 1:		//Primeira jogada
-			paintCard(resp.play1[0], resp.play1[1], 7, 200, 100);
+			paintCard(resp.play1[0], resp.play1[1], resp.color[0], resp.color[1], resp.color[2]);
 			writeCard(resp.play1[0], resp.play1[1], resp.str_play1, 200, 200, 200);
 			break;
 		case 3:		//Acabou o jogo (todas as cartas tao up)
 			//done = 1;
 		case 2:		//Jogar 2x e acertar na combinação
-			paintCard(resp.play1[0], resp.play1[1], 107, 200, 100);
+			paintCard(resp.play1[0], resp.play1[1], resp.color[0], resp.color[1], resp.color[2]);
 			writeCard(resp.play1[0], resp.play1[1], resp.str_play1, 0, 0, 0);
-			paintCard(resp.play2[0], resp.play2[1], 107, 200, 100);
+			paintCard(resp.play2[0], resp.play2[1], resp.color[0], resp.color[1], resp.color[2]);
 			writeCard(resp.play2[0], resp.play2[1], resp.str_play2, 0, 0, 0);
 			break;
 		case -2:	//Jogar 2x e falhar na combinação
-			paintCard(resp.play1[0], resp.play1[1], 107, 200, 100);
+			paintCard(resp.play1[0], resp.play1[1], resp.color[0], resp.color[1], resp.color[2]);
 			writeCard(resp.play1[0], resp.play1[1], resp.str_play1, 255, 0, 0);
-			paintCard(resp.play2[0], resp.play2[1], 107, 200, 100);
+			paintCard(resp.play2[0], resp.play2[1], resp.color[0], resp.color[1], resp.color[2]);
 			writeCard(resp.play2[0], resp.play2[1], resp.str_play2, 255, 0, 0);
 			break;
 		case -4:

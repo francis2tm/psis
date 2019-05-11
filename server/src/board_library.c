@@ -2,8 +2,8 @@
 
 extern int dim;
 extern Board_Place** board;
-extern int n_corrects;
 
+//Aloca e preenche o board com strings
 void initBoard(void){
     int count  = 0;
     int i, j;
@@ -56,8 +56,9 @@ void initBoard(void){
     }
 }
 
-void boardPlay(Play_Response* resp, char* n_play, int x, int y){
-
+//Processa as jogada de um determinado jogador que enviou ao servidor as coordenadas (x,y)
+void boardPlay(Play_Response* resp, char* n_play, int* n_corrects, int x, int y){
+    pthread_mutex_lock(&board[x][y].mutex_board);
     if(board[x][y].is_up){
         if(resp->code == 1){    //Se for a segunda jogada e for para virar a primeira carta para baixo
             resp->code = -1;
@@ -89,8 +90,8 @@ void boardPlay(Play_Response* resp, char* n_play, int x, int y){
             if (!strcmp(first_str, secnd_str)){
                 printf("CORRECT!!!\n");
 
-                n_corrects += 2;
-                if (n_corrects == dim*dim){
+                *n_corrects += 2;
+                if (*n_corrects == dim*dim){
                     resp->code = 3;
                 }else{
                     resp->code = 2;
@@ -98,10 +99,9 @@ void boardPlay(Play_Response* resp, char* n_play, int x, int y){
             }else{
                 printf("INCORRECT\n");
                 resp->code = -2;
-                board[resp->play1[0]][resp->play1[1]].is_up = 0;
-                board[x][y].is_up = 0;
             }
             *n_play = 0;
         }
     }
+    pthread_mutex_unlock(&board[x][y].mutex_board);
 }
