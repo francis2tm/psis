@@ -4,6 +4,7 @@
         "board_library.h": "c",
         "ui_library.h": "c",
         "unistd.h": "c",
-        "limits": "c"
+        "limits": "c",
+        "server.h": "c"
     }
 }

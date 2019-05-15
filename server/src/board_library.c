@@ -63,7 +63,7 @@ void boardPlay(Play_Response* resp, char* n_play, int* n_corrects, int x, int y)
         if(resp->code == 1){    //Se for a segunda jogada e for para virar a primeira carta para baixo
             resp->code = -1;
             *n_play = 0;
-            board[resp->play1[0]][resp->play1[1]].is_up = 0;
+            fillCard(*resp, 0, resp->play1[0], resp->play1[1]);
         }else{
             printf("FILLED\n");
             resp->code = 0;
@@ -76,7 +76,7 @@ void boardPlay(Play_Response* resp, char* n_play, int* n_corrects, int x, int y)
             resp->play1[0] = x;
             resp->play1[1] = y;
             strcpy(resp->str_play1, board[x][y].str);
-            board[x][y].is_up = 1;
+            fillCard(*resp, 1, x, y);
         }else{                  //Se for a segunda jogada
             char* first_str = board[resp->play1[0]][resp->play1[1]].str;
             char* secnd_str = board[x][y].str;
@@ -85,23 +85,36 @@ void boardPlay(Play_Response* resp, char* n_play, int* n_corrects, int x, int y)
             resp->play2[0] = x;
             resp->play2[1] = y;
             strcpy(resp->str_play2, secnd_str);
-            board[x][y].is_up = 1;
-
+            
             if (!strcmp(first_str, secnd_str)){
-                printf("CORRECT!!!\n");
-
+                printf("CORRECT!!!\n\n");
                 *n_corrects += 2;
                 if (*n_corrects == dim*dim){
                     resp->code = 3;
                 }else{
                     resp->code = 2;
                 }
+                fillCard(*resp, 1, x, y);
+                fillCard(*resp, 1, resp->play1[0], resp->play1[1]);
             }else{
-                printf("INCORRECT\n");
+                printf("INCORRECT\n\n");
                 resp->code = -2;
+                fillCard(*resp, 1, x, y);
+                fillCard(*resp, 1, resp->play1[0], resp->play1[1]);
             }
             *n_play = 0;
         }
     }
     pthread_mutex_unlock(&board[x][y].mutex_board);
+}
+
+//Preenche uma carta do board com o respetivo dono
+void fillCard(Play_Response resp, char value, int x, int y){
+    board[x][y].is_up = value;
+    board[x][y].code = resp.code;
+    if(value){                      //Só meter preencher cor se for para virar a carta para cima e se for a primeira jogada
+        board[x][y].owner_color[0] = resp.color[0];
+        board[x][y].owner_color[1] = resp.color[1];
+        board[x][y].owner_color[2] = resp.color[2];
+    }
 }

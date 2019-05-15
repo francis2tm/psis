@@ -11,6 +11,8 @@ typedef struct Board_Place{
     char str[3];    
     char is_up;     //0 - se a carta estiver virada para baixo (carta branca)
                     //1 se a carta estiver UP ou LOCKED (carta não branca)
+    char owner_color[3];
+    int code;
     pthread_mutex_t mutex_board;
 }Board_Place;
 
@@ -32,5 +34,6 @@ typedef struct Play_Response{
 
 void initBoard(void);
 void boardPlay(Play_Response* resp, char* n_play, int* n_corrects, int x, int y);
+void fillCard(Play_Response resp, char value, int x, int y);
 
 #endif

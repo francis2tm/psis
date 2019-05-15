@@ -44,21 +44,42 @@ dim por dim para guardar as posições do board.
     É so preciso enviar os pares que estão locked, portanto podemos fazer um vetor, já que sabemos o número max de pares que podem ser feitos
 
 - Como fazer o timer de 5s?
-    smp_wait (funcao do semáforo)
+    poll()
 
-- Qual a topologia do projeto?
-
-- Synchronization (on the server and client)? Porque é que também é preciso no client?
-
-- Tenho que fazer p_thread join no final?
+- sleep(2)
+    Fazer com um timestamp, quando o jogador errar na combinacao, ver a jogada e verificar se o timestamp já passou os 2s
 
 - Tenho de guardar os nós de todos os jogadores disconectados? Consigo apagar um nó da lista dos players (sempre que um player se disconecta) sem tornar a lista inteira numa região critica?
+    Depende bué do ambiente em que o programa vai correr (muitos jogadores, etc): Se houver poucos jjogadores, a melhor maneira é ter locks para cada elementos
+Mas se houver muitos elementos, tar sempre a ganhar locks e fazer unlock, é dispendioso, logo mais vale bloquear a lista toda. Mas também há a maneira de apenas
+meter a head da lista com região crítica e nnc remover elementos, simplesmente quando um jogador se disconecta mete-se uma flag a 0. Assim não há região crítica
+mas dps sempre que se fizer sweep vai haver leituras desnecessárias.
 
 - Para fazer a sync do is_up, o melhor a fazer é mutex em todos os elementos do board?
+    Ya claro
 
-- Bug do sleep(2)
+- O que fazer quando um cliente se disconecta, e ao mesmo tempo está uma outra thread a tentar enviar-lhe o broadcast?
+    Pode ser o SIGPIPE  ignore
 
-- No broadcast inicial, tenho que mandar as cartas UP (que estão para cima e que nao estao locked)? 
+- Qual a topologia do projeto?
+    É server-client, mas n é a maneira clássica
+
+- Synchronization (on the server and client)? Porque é que também é preciso no client?
+    Não n é preciso.
+
+- Tenho que fazer p_thread join no final?
+    Fazer detach
+
+- No broadcast inicial, tenho que mandar as cartas UP (que estão para cima e que nao estao locked)?
+    Sim, tenho que guardar o dono (cor) da peça no board
+
+- De um jogador que se disconectou, basta guardar o seu score se ele tiver o maior score certo?
+
+- Tenho que verificar retorno de pthread_mutex_lock, unlock, sem_post, sem_wait etc?
+
+- pthread_mutex_lock(&common_data->mutex_timer);  common_data->resp.code = 0;  pthread_mutex_unlock(&common_data->mutex_timer);, é uma race condition?
+
+- Cena do poll()
 
 /*********************************TO_DO*****************************************/
 -Descobrir onde é preciso Synchronization para além do is_up
