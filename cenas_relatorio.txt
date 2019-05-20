@@ -15,6 +15,15 @@ dim por dim para guardar as posições do board.
 
 - //Passamos um ponteiro como argumento para o handler de cada cliente pq a thread de cada clietne precisa de saber para além do respetivo sock_fd, o seu node na lista de jogadores (para depois fazer o swap se se disconectar para manter a lista ordenada)
 
+- Cores: Dá para fazer 11 ciclos ate G chegar a 245, cada ciclo dá 6 cores. E ainda dá mais uma cor pq ainda dá para somar o R (R fica 250 < 255), logo, 
+    dá para fazer 6*11 +1 = 67 cores.
+
+- Na com, n aprendos a resolver diferentes tamanhos de int em máquinas diferentes (i.e. no servidor sizeof(int) = 4 e no cliente sizeof(int) = 8) mas resolvemos o problema
+do little end e big end, no entanto, mas metemos o htonl e ntohl
+
+- Decidimos remover jogadores que se desconectaram de modo a ter sermpre recursos disponiveis
+
+
 /*********************************PERGUNTAR*****************************************/
 -Servidor: Precisamos do (struct sockaddr*)&client_addr (preenchido no accept)?
     Ya, pq há OS que precisam disso senão a socket pode não funfar
@@ -73,21 +82,37 @@ mas dps sempre que se fizer sweep vai haver leituras desnecessárias.
 - No broadcast inicial, tenho que mandar as cartas UP (que estão para cima e que nao estao locked)?
     Sim, tenho que guardar o dono (cor) da peça no board
 
-- De um jogador que se disconectou, basta guardar o seu score se ele tiver o maior score certo?
-
-- Tenho que verificar retorno de pthread_mutex_lock, unlock, sem_post, sem_wait etc?
+- Tenho que verificar retorno de pthread_mutex_lock, unlock, sem_post, sem_wait, mutex_destroy?
+    Ver o que cada funcao retorna
 
 - pthread_mutex_lock(&common_data->mutex_timer);  common_data->resp.code = 0;  pthread_mutex_unlock(&common_data->mutex_timer);, é uma race condition?
+    Ya, pq n sao operacoes atómicas
 
 - Cena do poll()
+    Recv e poll() têm de estar na mesma thread
+
+- Quando mando um inteiro, n tenho de me preocupar com aquela cenad o little end e isso?
+    Ya deviamos
+
+- Não tenho que declarar os inteiros como unit32_t antes de mandar pela socket?
+    Nesta cadeira n temos que tratar disso
+
+- COmo desligar servidor?
+    Progamar o ctrl + C
+
+- Quando um cliente se conectou e ja foi antingido o num_max de players, ele pode começar a jogar imediatamente que haja 1 vaga ou posso cagar nele?
+
+-Checkar o initSocket() 
 
 /*********************************TO_DO*****************************************/
--Descobrir onde é preciso Synchronization para além do is_up
--Verificar dim tem q ser par
--No final dizer expliciatamente quais as estruturas de dados do stor que cagámos
--Meter o .code do Play_Response a char
--Qd so ha um jogador, o server é que descarda as jogadas desse jogador
--Fazer proteções (tipo verificar dim dos (x,y) recebidos pelo cliente)
--Meter os clientes disconectados no cu da lista de modo a quando queremos fazer updateboard n termos que varrer a lista toda (ela vai tar ordenada de acordo com o state dos players)
--Limitar o numero de jogadores (por causa das cores) constantemente, sempre que um jogador se conecta
--Meter um jogador em espera quando tá a jgoar e todos os players bazam
+-DONE||Verificar dim tem q ser par e menor que (26?)
+-DONE||Descobrir onde é preciso Synchronization para além do is_up
+-DONE||Meter os clientes disconectados no cu da lista de modo a quando queremos fazer updateboard n termos que varrer a lista toda (ela vai tar ordenada de acordo com o state dos players)
+-DONE||Meter um jogador em espera quando tá a jgoar e todos os players bazam
+-DONE||Qd so ha um jogador, o server é que descarda as jogadas desse jogador
+-DONE||Limitar o numero de jogadores (por causa das cores) constantemente, sempre que um jogador se conecta
+-DONE||Fazer proteções (tipo verificar dim dos (x,y) recebidos pelo cliente)
+-Fazer reset do jogo
+-Quem ganha
+-Fazer bot
+-Meter cenas AF_INET

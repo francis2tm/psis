@@ -3,15 +3,16 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <sys/types.h> 
+#include <sys/socket.h>
+#include <sys/un.h>
 
-/*****************************************************************************************************
- * verifyErr ()
- *  Arguments: p: ponteiro genérico
- *            type: modo de verificação: 'm' -> alocação memória
- *  Returns: void
- *  Description: Verifica se um ponteiro aponta para null ou não. Função utilizada para verificar o sucesso
- * de mallocs ou de abertura de ficheiros
- ****************************************************************************************************/
-void verifyErr(void *p, char type);
+#define SERVER_ADDR "../server_sock"
+
+
+void verifyErr(void *p);
+void initSync();
+void cpy3CharVec(char* src, char* dest);
+void processArgs(int argc, char** argv);
 
 #endif

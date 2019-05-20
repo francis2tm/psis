@@ -5,6 +5,9 @@
         "ui_library.h": "c",
         "unistd.h": "c",
         "limits": "c",
-        "server.h": "c"
+        "server.h": "c",
+        "com.h": "c",
+        "client_handler.h": "c",
+        "un.h": "c"
     }
 }

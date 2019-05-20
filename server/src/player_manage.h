@@ -14,17 +14,12 @@ typedef struct Node_Client_Struct{
     struct Node_Client_Struct* prev;
 }Node_Client;
 
-/*typedef struct Score_Struct{
-    unsigned int max_score;
-    Node_Client** score_head;
-    pthread_mutex_t mutex_score;
-}Score;*/
-
 void createPlayer(int client_fd);
 Node_Client* insertPlayer(int sock_fd);
 void deleteNode(Node_Client* deletingNode);
 void deleteList();
 void generateColor(char color[]);
 void broadcastBoard(Play_Response resp, char* buff_send);
+void updateNumPlayers(char value);
 
 #endif

@@ -1,93 +1,31 @@
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/un.h>
-#include <pthread.h>
-#include "UI_library.h"
-#include "utils.h"
-
-#define SERVER_ADDR "../server_sock"
-#define CLIENT_ADDR "../client_2_sock"
-
-typedef struct Play_Response{
-  int code;  
-            // 0 - filled
-            // 1 - 1st play
-            // 2 2nd - same plays
-            // 3 END
-            // -1 2nd - virar primeira jogada para baixo
-            // -2 2nd - combinação errada, meter as cartas vermelhas durante 2s
-            // -4 2nd - combinação errada, virar as cartas para branco  ao fim dos 2s
-  int play1[2];
-  int play2[2];
-  char color[3];
-  char str_play1[3], str_play2[3];
-}Play_Response;
-
-void* sdlHandler(int sock_fd);
-void handShake(int sock_fd);
-void setActualBoard(Play_Response resp);
-void updateBoard(Play_Response resp);
+#include "client.h"
+#include "com.h"
 
 int dim;
 
 int main(){
 	int sock_fd;
-	struct sockaddr_un server_addr;
-	struct sockaddr_un client_addr;
 	pthread_t thread_id;
 	char* buff_recv = NULL;
 	Play_Response resp = {.play2[0] = 0};
 
 	unlink(CLIENT_ADDR);
 
-	if(SDL_Init( SDL_INIT_VIDEO) < 0){
-		 printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
-		 exit(-1);
-	}
-	if(TTF_Init() == -1){
-		printf("TTF_Init: %s\n", TTF_GetError());
-		exit(2);
-	}
+	initSDL();
 
-	if((sock_fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1){
-		perror("socket: ");
-		exit(-1);
-	}
-
-	client_addr.sun_family = AF_UNIX;
-	strcpy(client_addr.sun_path, CLIENT_ADDR);
-
-	
-	if(bind(sock_fd, (struct sockaddr*)&client_addr, sizeof(client_addr)) == -1){
-		perror("bind");
-		exit(-1);
-	}
-
-	server_addr.sun_family = AF_UNIX;
-	strcpy(server_addr.sun_path, SERVER_ADDR);
-
-	if(connect(sock_fd, (const struct sockaddr *) &server_addr, sizeof(server_addr)) == -1){
-		printf("Error connecting\n");
-		exit(-1);
-	}
+	sock_fd = initSocket();
 
 	buff_recv = (char*)malloc(sizeof(Play_Response));
-	verifyErr(buff_recv, 'm');				//Verifica se malloc foi bem sucedido
+	verifyErr(buff_recv);												//Verifica se malloc foi bem sucedido
 
-	handShake(sock_fd);						//Primeira mensagem, receber dim
+	handShake(sock_fd);													//Primeira mensagem, receber dim
 
-	createBoardWindow(300, 300);			//Criar board em função do dim
+	createBoardWindow();
+	
 
 	//Receber estado atual do board
-	while(read(sock_fd, buff_recv, sizeof(Play_Response)) > 0){
-		memcpy((void*)&resp, buff_recv, sizeof(Play_Response));
+	while(receber(sock_fd, &resp, buff_recv) > 0){
 		if(resp.play2[0] == -1){
-			printf("(%d,%d)\n", resp.play1[0], resp.play2[1]);
 			setActualBoard(resp);
 		}else{
 			break;		//Sair de preencher o estado atual da board quando resp.play2[0] != -1
@@ -96,13 +34,12 @@ int main(){
 
 	//Criar thread que recebe eventos SDL
 	if(pthread_create(&thread_id, NULL, (void*)sdlHandler, (void*)sock_fd)){
-		perror("Couldn't create thread\n");
+		fprintf(stderr, "Couldn't create thread\n");
 		exit(-1);
 	}
 
 	//Criar main loop de receção das jogadas processadas
-	while(read(sock_fd, buff_recv, sizeof(Play_Response)) > 0){
-		memcpy((void*)&resp, buff_recv, sizeof(Play_Response));
+	while(receber(sock_fd, &resp, buff_recv) > 0){
 		updateBoard(resp);
 	}
 
@@ -119,6 +56,7 @@ void* sdlHandler(int sock_fd){
 	
 	while (!done){
 		while (SDL_PollEvent(&event)){
+			SDL_PumpEvents();
 			switch (event.type){
 				case SDL_QUIT:{
 					done = SDL_TRUE;
@@ -126,11 +64,15 @@ void* sdlHandler(int sock_fd){
 				}
 				case SDL_MOUSEBUTTONDOWN:{
 					getBoardCard(event.button.x, event.button.y, &play[0], &play[1]);
-					write(sock_fd, play, sizeof(int)*2);
+					if(enviar(sock_fd, play) < 0){
+						closeBoardWindows();
+						return NULL;
+					}
+					break;
 				}
 			}
+			SDL_PumpEvents();
 		}
-		SDL_PumpEvents();
 	}
 	printf("fim\n");
 	closeBoardWindows();
@@ -162,7 +104,7 @@ void updateBoard(Play_Response resp){
 			paintCard(resp.play1[0], resp.play1[1], 255, 255, 255);
 			paintCard(resp.play2[0], resp.play2[1], 255, 255, 255);
 			break;
-		case -1:
+		case -1:	//Virar a carta da primeira jogada para cima caso o timer 5s tenha acabado ou o jogador na 2a jogada clicou numa carta UP
 			paintCard(resp.play1[0], resp.play1[1], 255, 255, 255);
 			break;
 	}
@@ -186,12 +128,3 @@ void setActualBoard(Play_Response data){
 	}
 }
 
-void handShake(int sock_fd){
-
-	if(read(sock_fd, &dim, sizeof(int)) > 0){
-		printf("Hand Shake done, dim=%d \n", dim);
-	}else{
-		printf("Hand shake not possible\n");
-		exit(-1);
-	}
-}

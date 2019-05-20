@@ -9,7 +9,7 @@
 void writeCard(int  board_x, int board_y, char * text, int r, int g, int b);
 void paintCard(int  board_x, int board_y , int r, int g, int b);
 void getBoardCard(int mouse_x, int mouse_y, int * board_x, int *board_y);
-int createBoardWindow(int width, int height);
+int createBoardWindow();
 void closeBoardWindows(void);
 
 #endif

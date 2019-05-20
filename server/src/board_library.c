@@ -1,7 +1,11 @@
 #include "board_library.h"
+#include "utils.h"
+#include "player_manage.h"
 
 extern int dim;
 extern Board_Place** board;
+extern pthread_mutex_t mutex_n_players;
+extern int n_players;
 
 //Aloca e preenche o board com strings
 void initBoard(void){
@@ -11,12 +15,12 @@ void initBoard(void){
   
     //Alocar a matriz
 	board = (Board_Place**)malloc(sizeof(Board_Place*)*dim);
-	verifyErr(board, 'm');
+	verifyErr(board);
 	for(i = 0; i < dim; i++){
         board[i] = NULL;
 		board[i] = (Board_Place*)malloc(sizeof(Board_Place)*dim);
 		if(board == NULL){
-			verifyErr(board[i], 'm');
+			verifyErr(board[i]);
 		}
 	}
 
@@ -34,7 +38,6 @@ void initBoard(void){
                 i = rand() % dim;
                 j = rand() % dim;
                 str_place = board[i][j].str;
-                printf("%d %d -%s-\n", i, j, str_place);
             }while(str_place[0] != '\0');
             str_place[0] = c1;
             str_place[1] = c2;
@@ -43,7 +46,6 @@ void initBoard(void){
                 i = rand() % dim;
                 j = rand() % dim;
                 str_place = board[i][j].str;
-                printf("%d %d -%s-\n", i, j, str_place);
             }while(str_place[0] != '\0');
             str_place[0] = c1;
             str_place[1] = c2;
@@ -113,8 +115,23 @@ void fillCard(Play_Response resp, char value, int x, int y){
     board[x][y].is_up = value;
     board[x][y].code = resp.code;
     if(value){                      //Só meter preencher cor se for para virar a carta para cima e se for a primeira jogada
-        board[x][y].owner_color[0] = resp.color[0];
-        board[x][y].owner_color[1] = resp.color[1];
-        board[x][y].owner_color[2] = resp.color[2];
+        cpy3CharVec(resp.color, board[x][y].owner_color);		//Copiar vetor resp.color para vetor board[x][y].owner_color
     }
+}
+
+//Verificar a jogada recebida, a ver se é preciso ignorar: se (x,y) estão dentro do dim e se ha mais do que 1 jogador
+int checkPlay(int x, int y){
+    //Verificar se é o único jogador
+    pthread_mutex_lock(&mutex_n_players);
+    if(n_players == 1){
+        pthread_mutex_unlock(&mutex_n_players);
+        return 1;
+    }
+    pthread_mutex_unlock(&mutex_n_players);
+
+    //Verificar se as coordenadas recebidas estão dentro do board
+    if(x >= dim || y >= dim || x < 0 || y < 0){                       
+        return 1;
+    }
+    return 0;
 }

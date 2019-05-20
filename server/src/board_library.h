@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <pthread.h>
-#include "utils.h"
+
 
 typedef struct Board_Place{
     char str[3];    
@@ -35,5 +35,6 @@ typedef struct Play_Response{
 void initBoard(void);
 void boardPlay(Play_Response* resp, char* n_play, int* n_corrects, int x, int y);
 void fillCard(Play_Response resp, char value, int x, int y);
+int checkPlay(int x, int y);
 
 #endif

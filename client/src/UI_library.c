@@ -1,4 +1,5 @@
 #include "UI_library.h"
+#include "client.h"
 
 extern int dim;
 
@@ -59,7 +60,18 @@ void getBoardCard(int mouse_x, int mouse_y, int * board_x, int *board_y){
 	*board_y = mouse_y / row_height;
 }
 
-int createBoardWindow(int width, int height){
+int createBoardWindow(){
+
+	int width;
+	int height;
+
+	if(dim <= 10){														//Criar window com tamanho proporcional ao dim
+		width =	75*dim;
+		height = 75*dim;							
+	}else{																//Criar window com o tamanho max
+		width =	MAX_SIZE_WINDOW;
+		height = MAX_SIZE_WINDOW;		
+	}
 
 	screen_width = width;
 	screen_height = height;
@@ -68,6 +80,7 @@ int createBoardWindow(int width, int height){
 	col_width = width / n_ronw_cols;
 	screen_width = (n_ronw_cols * col_width) +1;
 	screen_height = (n_ronw_cols * row_height) +1;
+
 
 	if (SDL_CreateWindowAndRenderer(screen_width, screen_height, 0, &window, &renderer) != 0){
 		printf( "Window could not be created! SDL_Error: %s\n", SDL_GetError());

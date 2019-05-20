@@ -3,15 +3,10 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 
-/*****************************************************************************************************
- * verifyErr ()
- *  Arguments: p: ponteiro genérico
- *            type: modo de verificação: 'm' -> alocação memória
- *  Returns: void
- *  Description: Verifica se um ponteiro aponta para null ou não. Função utilizada para verificar o sucesso
- * de mallocs ou de abertura de ficheiros
- ****************************************************************************************************/
-void verifyErr(void *p, char type);
+void verifyErr(void *p);
+void initSDL();
 
 #endif
