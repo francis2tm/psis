@@ -23,6 +23,7 @@ do little end e big end, no entanto, mas metemos o htonl e ntohl
 
 - Decidimos remover jogadores que se desconectaram de modo a ter sermpre recursos disponiveis
 
+- Explicar como fizemos para aquando o CTRL+C meter todas as threads a libertarem tudo
 
 /*********************************PERGUNTAR*****************************************/
 -Servidor: Precisamos do (struct sockaddr*)&client_addr (preenchido no accept)?
@@ -102,7 +103,13 @@ mas dps sempre que se fizer sweep vai haver leituras desnecessárias.
 
 - Quando um cliente se conectou e ja foi antingido o num_max de players, ele pode começar a jogar imediatamente que haja 1 vaga ou posso cagar nele?
 
--Checkar o initSocket() 
+- Checkar o initSocket() 
+
+- Tenho que fazer sync no end_flag?
+
+- É na boa ter uma thread a mexer em variáveis do stack de outra thread né?
+
+- A main thread é demasiado rápida e acaba o processo antes das outras threads mandarem free nas cenas
 
 /*********************************TO_DO*****************************************/
 -DONE||Verificar dim tem q ser par e menor que (26?)
@@ -116,3 +123,9 @@ mas dps sempre que se fizer sweep vai haver leituras desnecessárias.
 -Quem ganha
 -Fazer bot
 -Meter cenas AF_INET
+-Programar CTRL+C do servidor
+-Resolver erros valgrind
+
+
+VALGRIND-----------------
+valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose --log-file=valgrind-out.txt ./server 4

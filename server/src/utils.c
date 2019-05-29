@@ -75,3 +75,22 @@ void processArgs(int argc, char** argv){
 		exit(-1);
 	}
 }
+
+//Define os 2 signal handlers: Ignorar SIGPIPE para garantir longevidade do servidor e SIGINT para desligar o servidor
+void initSigHandlers(){
+	struct sigaction a;
+
+	a.sa_handler = handleSigInt;
+	a.sa_flags = 0;
+	sigemptyset(&a.sa_mask);
+
+	if(sigaction( SIGINT, &a, NULL ) == -1){			//Definir comportamento quando o processo "apanha" o SIGINT (CTRL+C), serve para terminarmos o servidor
+		fprintf(stderr, "Couldn't define signal handler\n");
+		exit(-1);
+	}	
+	
+	if(signal(SIGPIPE, SIG_IGN) == SIG_ERR){			//Caso uma thread tá a ler o nó de um jogador que acabou de se disconectar e a thread do jogador que se disconectou não tem tempo de eliminar o node correspondente
+		fprintf(stderr, "Couldn't define signal handler\n");
+		exit(-1);
+	}
+}

@@ -10,7 +10,9 @@ Board_Place** board = NULL;					//Duplo ponteiro, posteriormente será usado par
 char last_color[3] = {10, 25, 18};			//Última cor gerada pelo último cliente a ter sido conectado
 char prox_RGB = 0;							//Variável global utilizada pela generateColor()
 Node_Client* head = NULL;					//Head do stack dos jogadores
-int n_players = 0;			//Estrutura que contém o numero de jogadores e o respetivo mutex
+int n_players = 0;							//Estrutura que contém o numero de jogadores e o respetivo mutex
+
+volatile char end_flag = 0;					//Flag que indica quando for para terminar o servidor
 
 pthread_mutex_t mutex_color;
 pthread_rwlock_t rwlock_stack_head;
@@ -19,24 +21,26 @@ pthread_mutex_t mutex_n_players;
 
 int main(int argc, char** argv){
 	struct sockaddr_un client_addr;
-	socklen_t size_addr;
+	socklen_t size_addr = 0;
 	int client_fd;
 	int server_fd;
-
-	//signal(SIGPIPE, SIG_IGN);	//Caso uma thread tá a ler o nó de um jogador que acabou de se disconectar e a thread do jogador que se disconectou não tem tempo de eliminar o node correspondente
-
+	
+	initSigHandlers();					//Definir os sig handlers
 	processArgs(argc, argv);			//Processar e verificar o dim recebido pelos args
 
 	unlink(SERVER_ADDR);
 
 	initBoard();						//Alocar e preencher a board
-	initSync();							//Inicializar sync
+	initSync();							//Inicializar sync (locks)
 	server_fd = initSocket(size_addr);	//Setup socket
 
 	//Main thread só aceita novas conexões
-	while(1){
+	while(!end_flag){
 		printf(" Ready to accept connections\n");	
 		if((client_fd = accept(server_fd, (struct sockaddr*)&client_addr, &size_addr)) == -1){	//Verficiar se não houve erro a fazer accept
+			if(end_flag){
+				break;
+			}
 			perror("accept");
 			exit(-1);
 		}
@@ -65,5 +69,13 @@ int main(int argc, char** argv){
 			pthread_mutex_destroy(&board[i][j].mutex_board);
 		}
 	}
+	deleteBoard();					//Libertar o board
+
+	sleep(2);
 	return EXIT_SUCCESS;
 }
+
+//Signal Handler para o SIGINT
+void handleSigInt(){ 
+	end_flag = 1;
+} 

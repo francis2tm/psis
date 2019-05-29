@@ -4,6 +4,7 @@
 
 extern Board_Place** board;
 extern int dim;
+volatile char end_flag;
 
 //Handler para cada jogador, é executado pela thread associada ao jogador
 void* playerHandler(Node_Client* client_data){
@@ -41,9 +42,13 @@ void* playerHandler(Node_Client* client_data){
 		exit(-1);
 	}
 
-	//Ciclo até o cliente estiver conectado
+	//Ciclo até o cliente estiver conectado e enquanto não for para terminar o servidor
 	while(receber(client_fd, play_recv) > 0){
 		
+		if(end_flag){
+			break;
+		}
+
 		//Verifica se a jogada é válida
 		if(checkPlay(play_recv[0], play_recv[1])){
 			continue;
@@ -80,24 +85,28 @@ void* playerHandler(Node_Client* client_data){
 			}
 		}
 	}
-	//Cliente disconectou-se
-	pthread_cancel(thread_id);
+	//Cliente disconectou-se ou o servidor está a terminar
+	//Destruição da thread timer
+	pthread_mutex_lock(&common_data.mutex_timer);		//Ter a certeza que o thread de timer não fica com nenhuma lock antes de morrer -> esperar que ela faça tudo o que tem a fazer
+	common_data.resp.code = CANCEL_TIMER_THREAD;
+	pthread_mutex_unlock(&common_data.mutex_timer);		//Não é preciso pois a lock vai ser agora destruída, é meramente uma formalidade 
+	sem_post(&common_data.sem);							//Ativar a thread timer para ela se auto destruir
 	pthread_join(thread_id, NULL);
 
-	deleteNode(client_data);				//Apaga nó correspondente ao player da lista de players
+	if(!end_flag){										//Só vale a pena fazer estas operações se o servidor não estiver a terminar
+		deleteNode(client_data);							//Apaga nó correspondente ao player da lista de players
 
-	//Se o jogador tiver saído durante o timer de 5s, temos de virar a carta para baixo
-	if(n_play == 1){
-		pthread_mutex_lock(&board[common_data.resp.play1[0]][common_data.resp.play1[1]].mutex_board);
-		fillCard(common_data.resp, 0, common_data.resp.play1[0], common_data.resp.play1[1]);
-		pthread_mutex_unlock(&board[common_data.resp.play1[0]][common_data.resp.play1[1]].mutex_board);
-		printf("Entrei\n");
+		//Se o jogador tiver saído durante o timer de 5s, temos de virar a carta para baixo
+		if(n_play == 1){
+			pthread_mutex_lock(&board[common_data.resp.play1[0]][common_data.resp.play1[1]].mutex_board);
+			fillCard(common_data.resp, 0, common_data.resp.play1[0], common_data.resp.play1[1]);
+			pthread_mutex_unlock(&board[common_data.resp.play1[0]][common_data.resp.play1[1]].mutex_board);
+			common_data.resp.code = -1;
+			broadcastBoard(common_data.resp, common_data.buff_send); 				//Mandar alterações do board a todos os jogadores
+		}
 
-		common_data.resp.code = -1;
-		broadcastBoard(common_data.resp, common_data.buff_send); 				//Mandar alterações do board a todos os jogadores
+		updateNumPlayers(0);					//Decrementar a variável que contém o numero de jogadores online
 	}
-
-	updateNumPlayers(0);					//Decrementar a variável que contém o numero de jogadores online
 
 	//Libertar recursos
 	sem_destroy(&common_data.sem);
@@ -110,10 +119,15 @@ void* playerHandler(Node_Client* client_data){
 void* timerHandler(Cmn_Thr_Data* common_data){
 	while(1){
 		sem_wait(&common_data->sem);							//Bloquear esta thread até que um timer seja necessário
-		
+
+		if(common_data->resp.code == CANCEL_TIMER_THREAD){		//Flag para esta thread se auto-destruir
+			break;
+		}
+
 		sleep(2);
 
 		pthread_mutex_lock(&common_data->mutex_timer);			//Mutex para não deixar que o resp ser mudado pela outra thread
+
 		//Voltar as cartas erradas para baixo
 		pthread_mutex_lock(&board[common_data->resp.play1[0]][common_data->resp.play1[1]].mutex_board);
 		fillCard(common_data->resp, 0, common_data->resp.play1[0], common_data->resp.play1[1]);
@@ -131,4 +145,5 @@ void* timerHandler(Cmn_Thr_Data* common_data){
 		common_data->resp.code = 0;
 		pthread_mutex_unlock(&common_data->mutex_timer);
 	}
+	return NULL;
 }

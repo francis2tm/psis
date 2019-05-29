@@ -135,3 +135,13 @@ int checkPlay(int x, int y){
     }
     return 0;
 }
+
+//Liberta a memória ocupada pelo board
+void deleteBoard(){
+    int i;
+
+    for(i = 0; i < dim; i++){
+		free(board[i]);
+	}
+    free(board);
+}

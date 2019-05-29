@@ -36,5 +36,6 @@ void initBoard(void);
 void boardPlay(Play_Response* resp, char* n_play, int* n_corrects, int x, int y);
 void fillCard(Play_Response resp, char value, int x, int y);
 int checkPlay(int x, int y);
+void deleteBoard();
 
 #endif

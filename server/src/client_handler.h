@@ -18,6 +18,8 @@ typedef struct Cmn_Thr_Data_Struct{
 	pthread_mutex_t mutex_timer;
 }Cmn_Thr_Data;
 
+#define CANCEL_TIMER_THREAD -200
+
 void* playerHandler(Node_Client* client_data);
 void* timerHandler(Cmn_Thr_Data* common_data);
 

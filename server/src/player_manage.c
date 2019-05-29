@@ -78,6 +78,9 @@ void deleteNode(Node_Client* deletingNode){
 		deletingNode->next->prev = deletingNode->prev;
 	}
 	pthread_rwlock_unlock(&rwlock_stack);
+
+	close(deletingNode->sock_fd);
+
 	free(deletingNode);			//free fora da região crítica porque não é necessário estar
 }
 
@@ -86,10 +89,14 @@ void deleteList(){
     Node_Client* aux;
     Node_Client* next;
 
+	pthread_rwlock_wrlock(&rwlock_stack);
     for(aux = head; aux != NULL; aux = next){
         next = aux->next;
+		shutdown(aux->sock_fd, SHUT_RDWR);				//Serve somente para a thread correspondente à socket ficar desbloqueada no read()
+		close(aux->sock_fd);
         free(aux);
     }
+	pthread_rwlock_unlock(&rwlock_stack);
 }
 
 //Gera uma cor com uma ordem predefinida -> este algoritmo gera 34 cores diferentes, logo, o numero max de jogadores é 34
