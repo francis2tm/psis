@@ -168,7 +168,7 @@ void* timerHandler(Cmn_Thr_Data* common_data){
 		}else if(common_data->resp.code == 3){					//Quando esta é a thread timer da thread que recebeu a última jogada (esta é a única que tem resp.code = 3)									
 			common_data->resp.code = 4;							//Basicamente usar o resp.code como flag para a thread que recebe jogadas as descartar
 			mutex(UNLOCK, &common_data->mutex_timer);	//Na boa unlock estar aqui pois a outra thread nunca vai mudar common_data com resp.code = 4
-			score.sem_pointer = &common_data->sem;				//Meter o ponteiro da responsável dentro da estrutura score, n é preciso sync pq ainda nenhuma das outras threads foram ativadas
+			score.sem_pointer = &common_data->sem;				//Meter o ponteiro do sem da thread master reset dentro da estrutura score, n é preciso sync pq ainda nenhuma das outras slave threads foram ativadas
 			score.top_score = 0;								// Meter a 0 pq esta variavel foi usada para contar o nº jogadas durante o jogo
 			tryUpdateScore(common_data->n_corrects, common_data->sock_fd);
 			broadcastThreads(common_data->sock_fd);				//Notificar as outras threads do reset, meter as outras threads a descartar jogadas de jogadores
@@ -206,10 +206,10 @@ void* timerHandler(Cmn_Thr_Data* common_data){
 
 		}else if(reset_flag){									//Quando todas as N-1 timer threads tiverem que fazer o reset do seu respetivo cliente
 			common_data->resp.code = 4;							//Basicamente usar o resp.code como flag para a thread que recebe jogadas as descartar
-			mutex(UNLOCK, &common_data->mutex_timer);	//Na boa unlock estar aqui pois a outra thread nunca vai mudar common_data com resp.code = 4
+			mutex(UNLOCK, &common_data->mutex_timer);			//Na boa unlock estar aqui pois a outra thread nunca vai mudar common_data com resp.code = 4
 			tryUpdateScore(common_data->n_corrects, common_data->sock_fd);
 
-			semaphore(WAIT, &common_data->sem);						//Adormecer thread até que o timer 10s do reset tenha acabado (esperar pela notificação da thread "responsavel")
+			semaphore(WAIT, &common_data->sem);					//Adormecer thread até que o timer 10s do reset tenha acabado (esperar pela notificação da thread reset master)
 			mutex(LOCK, &common_data->mutex_timer);
 			common_data->resp.code = 0;
 			common_data->n_corrects = 0;

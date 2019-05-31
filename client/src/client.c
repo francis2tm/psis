@@ -2,9 +2,9 @@
 #include "com.h"
 
 int dim;
+int sock_fd;
 
 int main(){
-	int sock_fd;
 	pthread_t thread_id;
 	char* buff_recv = NULL;
 	Play_Response resp = {.play2[0] = 0};
@@ -49,7 +49,7 @@ int main(){
 	}
 
 	free(buff_recv);
-	printf("Server Disconnected\n");
+	printf("Fim\n");
 
 	return EXIT_SUCCESS;
 }
@@ -79,9 +79,9 @@ void* sdlHandler(int sock_fd){
 			SDL_PumpEvents();
 		}
 	}
-	printf("fim\n");
+	shutdown(sock_fd, SHUT_RDWR);				//Serve somente para a thread que está a dormir no read() ficar desbloqueada 
+	close(sock_fd);
 	closeBoardWindows();
-
 	return NULL;
 }
 
@@ -115,7 +115,11 @@ void updateBoard(Play_Response resp){
 			resetBoard();
 			break;
 		case 10:
+			printf("Game Over\n");
 			printf("CONGRATS! YOU WON!!!\n");
+			break;
+		case 11:
+			printf("Game over, you aren't the winner\n");
 			break;
 
 	}
@@ -138,4 +142,3 @@ void setActualBoard(Play_Response data){
 			break;
 	}
 }
-
