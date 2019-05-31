@@ -23,7 +23,7 @@ extern Board_Place** board;
 void verifyErr(void *p){
 	if(p == NULL){
 		fprintf(stderr, "Erro a alocar memoria");
-		exit(0);
+		exit(EXIT_FAILURE);
 	}
 }
 
@@ -32,23 +32,23 @@ void initSync(){
 
 	if(pthread_mutex_init(&mutex_color, NULL)){
 		fprintf(stderr, "Mutex init ");
-		exit(-1);
+		exit(EXIT_FAILURE);
 	}
 	if(pthread_rwlock_init(&rwlock_stack_head, NULL)){
 		fprintf(stderr, "rw_lock init ");
-		exit(-1);
+		exit(EXIT_FAILURE);
 	}
 	if(pthread_rwlock_init(&rwlock_stack, NULL)){
 		fprintf(stderr, "rw_lock init ");
-		exit(-1);
+		exit(EXIT_FAILURE);
 	}
 	if(pthread_rwlock_init(&rwlock_score, NULL)){
 		fprintf(stderr, "Mutex init ");
-		exit(-1);
+		exit(EXIT_FAILURE);
 	}
 	if(pthread_mutex_init(&mutex_reset, NULL)){
 		fprintf(stderr, "Mutex init ");
-		exit(-1);
+		exit(EXIT_FAILURE);
 	}
 
 
@@ -56,7 +56,7 @@ void initSync(){
 		for(int j = 0; j < dim; j++){
 			if(pthread_mutex_init(&board[i][j].mutex_board, NULL)){
 				fprintf(stderr, "mutex init\n");
-				exit(-1);
+				exit(EXIT_FAILURE);
 			}
 		}
 	}	
@@ -73,13 +73,13 @@ inline void cpy3CharVec(char* src, char* dest){
 void processArgs(int argc, char** argv){
 	if(argc != 2){	//Só pode haver o argumento a indiar a dimensão
 		perror("Invalid input arguments");
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 	dim = atoi(argv[1]);
 
 	if(!IS_EVEN(dim) || dim > MAX_DIM || dim < 2){
 		fprintf(stderr, "Invalid input dimension\n");
-		exit(-1);
+		exit(EXIT_FAILURE);
 	}
 }
 
@@ -93,12 +93,12 @@ void initSigHandlers(){
 
 	if(sigaction( SIGINT, &a, NULL ) == -1){			//Definir comportamento quando o processo "apanha" o SIGINT (CTRL+C), serve para terminarmos o servidor
 		fprintf(stderr, "Couldn't define signal handler\n");
-		exit(-1);
+		exit(EXIT_FAILURE);
 	}	
 	
 	if(signal(SIGPIPE, SIG_IGN) == SIG_ERR){			//Caso uma thread tá a ler o nó de um jogador que acabou de se disconectar e a thread do jogador que se disconectou não tem tempo de eliminar o node correspondente
 		fprintf(stderr, "Couldn't define signal handler\n");
-		exit(-1);
+		exit(EXIT_FAILURE);
 	}
 }
 

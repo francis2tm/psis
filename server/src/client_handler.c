@@ -175,8 +175,10 @@ void* timerHandler(Cmn_Thr_Data* common_data){
 			semaphore(WAIT, &common_data->sem);						//Esperar que as threads escolham o(s) vencedor(es)
 
 			mutex(LOCK, &common_data->mutex_timer);			//Mutex para não deixar que o resp ser mudado pela outra thread
+			common_data->resp.code = 11;
+			sendGameOver(common_data->resp, common_data->buff_send, common_data->sock_fd);	//Notificar ao jogador desta thread que o jogo acabou
 			common_data->resp.code = 10;
-			sendToWinners(common_data->resp, common_data->buff_send);	//Notificar os vencedores
+			sendGameOver(common_data->resp, common_data->buff_send, 0);	//Notificar os vencedores
 			common_data->resp.code = 4;
 			mutex(UNLOCK, &common_data->mutex_timer);
 
@@ -208,6 +210,14 @@ void* timerHandler(Cmn_Thr_Data* common_data){
 			common_data->resp.code = 4;							//Basicamente usar o resp.code como flag para a thread que recebe jogadas as descartar
 			mutex(UNLOCK, &common_data->mutex_timer);			//Na boa unlock estar aqui pois a outra thread nunca vai mudar common_data com resp.code = 4
 			tryUpdateScore(common_data->n_corrects, common_data->sock_fd);
+			
+			//Notificar o jogador desta thread que o jogo acabou
+			mutex(LOCK, &common_data->mutex_timer);							//Mutex para não deixar que o resp ser mudado pela outra thread
+			common_data->resp.code = 11;
+			sendGameOver(common_data->resp, common_data->buff_send, common_data->sock_fd);	//Notificar o jogador desta thread que o jogo acabou	
+			common_data->resp.code = 4;
+			mutex(UNLOCK, &common_data->mutex_timer);
+
 
 			semaphore(WAIT, &common_data->sem);					//Adormecer thread até que o timer 10s do reset tenha acabado (esperar pela notificação da thread reset master)
 			mutex(LOCK, &common_data->mutex_timer);

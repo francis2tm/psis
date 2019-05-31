@@ -166,15 +166,20 @@ void broadcastThreads(int _sockfd){
 	}
 }
 
-void sendToWinners(Play_Response resp, char* buff_send){
+void sendGameOver(Play_Response resp, char* buff_send, int loser_fd){
 	Score_Node* aux;
 
 	memcpy(buff_send, &resp, sizeof(Play_Response));
 
-	rwLock(R_LOCK, &rwlock_score);
-	for(aux = score.head; aux != NULL; aux = aux->next){
-		enviar(aux->sock_fd, buff_send, sizeof(Play_Response));
-	}
+	if(resp.code == 10){												//Se for para enviar aos vencedores
+		rwLock(R_LOCK, &rwlock_score);
+		for(aux = score.head; aux != NULL; aux = aux->next){
+			enviar(aux->sock_fd, buff_send, sizeof(Play_Response));
+		}
 
-	rwLock(UNLOCK, &rwlock_score);
+		rwLock(UNLOCK, &rwlock_score);
+	}else{																//Se for para enviar para um loser
+		enviar(loser_fd, buff_send, sizeof(Play_Response));
+	}
+	
 }

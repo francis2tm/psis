@@ -141,11 +141,12 @@ mas dps sempre que se fizer sweep vai haver leituras desnecessárias.
 -DONE||Quem ganha
 -DONE||Ver se temos de checkar o valor de retorno de mutex lock e unlock
 -DONE||Proteger sem_post a uma thread que acabou de bazar
+-DONE||Dizer a todos os clientes que o jogo acabou
 -Meter cenas AF_INET
 -Resolver erros valgrind
 -Tirar os detach
 -Meter bot a receber
--Dizer a todos os clientes que o jogo acabou
+
 
 
 VALGRIND-----------------

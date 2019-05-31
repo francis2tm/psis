@@ -115,11 +115,10 @@ void updateBoard(Play_Response resp){
 			resetBoard();
 			break;
 		case 10:
-			printf("Game Over\n");
 			printf("CONGRATS! YOU WON!!!\n");
 			break;
 		case 11:
-			printf("Game over, you aren't the winner\n");
+			printf("Game over\n");
 			break;
 
 	}
