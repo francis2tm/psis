@@ -6,6 +6,8 @@ extern int dim;
 extern pthread_mutex_t mutex_color;
 extern pthread_rwlock_t rwlock_stack_head;
 extern pthread_rwlock_t rwlock_stack;
+extern pthread_rwlock_t rwlock_score;
+extern Score_List score;
 extern Board_Place** board;
 extern Node_Client* head;
 
@@ -133,4 +135,46 @@ void sendDim(int client_fd, Cmn_Thr_Data* common_data, Node_Client* client_data)
 		free(common_data->buff_send);
 		pthread_exit(NULL);
 	}
+}
+
+//Notificar todas as threads do reset do jogo
+void broadcastThreads(int _sockfd){
+	Node_Client* aux;
+
+	pthread_rwlock_rdlock(&rwlock_stack_head);
+	if(head != NULL){												//Só enviar se houver clientes
+		//Notificar a head
+		if(head->sock_fd != _sockfd){								//Não fazer sem_post à thread "responsável" pelo reset
+			sem_post(head->sem_pointer);
+		}
+		
+
+		pthread_rwlock_rdlock(&rwlock_stack);						//Bloquear para leitura a lista toda
+		aux = head->next;
+		pthread_rwlock_unlock(&rwlock_stack_head);					//Já podemos desbloquear a head
+
+		//Notificar o resto da lista
+		while(aux != NULL){
+			if(aux->sock_fd != _sockfd){								//Não fazer sem_post à thread "responsável" pelo reset
+				sem_post(aux->sem_pointer);
+			}
+			aux = aux->next;
+		}
+		pthread_rwlock_unlock(&rwlock_stack);
+	}else{
+		pthread_rwlock_unlock(&rwlock_stack_head);
+	}
+}
+
+void sendToWinners(Play_Response resp, char* buff_send){
+	Score_Node* aux;
+
+	memcpy(buff_send, &resp, sizeof(Play_Response));
+
+	pthread_rwlock_rdlock(&rwlock_score);
+	for(aux = score.head; aux != NULL; aux = aux->next){
+		enviar(aux->sock_fd, buff_send, sizeof(Play_Response));
+	}
+
+	pthread_rwlock_unlock(&rwlock_score);
 }

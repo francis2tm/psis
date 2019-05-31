@@ -113,3 +113,13 @@ void closeBoardWindows(){
 	}
 	SDL_Quit();
 }
+
+void resetBoard(){
+	int i, j;
+
+	for(i = 0; i < dim; i++){
+		for(j = 0; j < dim; j++){
+			paintCard(i, j, 255, 255, 255);
+		}
+	}
+}

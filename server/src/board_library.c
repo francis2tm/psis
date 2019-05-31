@@ -4,25 +4,30 @@
 
 extern int dim;
 extern Board_Place** board;
-extern pthread_mutex_t mutex_n_players;
+extern pthread_rwlock_t rwlock_score;
+extern pthread_rwlock_t rwlock_stack;
+extern Score_List score;
 extern int n_players;
 
 //Aloca e preenche o board com strings
-void initBoard(void){
+void initBoard(char flag){
     int count  = 0;
     int i, j;
     char* str_place;
   
-    //Alocar a matriz
-	board = (Board_Place**)malloc(sizeof(Board_Place*)*dim);
-	verifyErr(board);
-	for(i = 0; i < dim; i++){
-        board[i] = NULL;
-		board[i] = (Board_Place*)malloc(sizeof(Board_Place)*dim);
-		if(board == NULL){
-			verifyErr(board[i]);
-		}
-	}
+    if(!flag){                              //Se for o servidor tiver começado agora, se não, não é preciso alocar 
+        //Alocar a matriz
+        board = (Board_Place**)malloc(sizeof(Board_Place*)*dim);
+        verifyErr(board);
+        for(i = 0; i < dim; i++){
+            board[i] = NULL;
+            board[i] = (Board_Place*)malloc(sizeof(Board_Place)*dim);
+            if(board == NULL){
+                verifyErr(board[i]);
+            }
+        }
+    }
+    
 
 	//Inicializar a matriz
 	for(i = 0; i < (dim); i++){
@@ -91,9 +96,14 @@ void boardPlay(Play_Response* resp, char* n_play, int* n_corrects, int x, int y)
             if (!strcmp(first_str, secnd_str)){
                 printf("CORRECT!!!\n\n");
                 *n_corrects += 2;
-                if (*n_corrects == dim*dim){
+                pthread_rwlock_wrlock(&rwlock_score);
+                score.top_score += 2;
+                if(score.top_score == dim*dim){
+                    pthread_rwlock_unlock(&rwlock_score);
                     resp->code = 3;
+                    printf("ACABOU\n\n");
                 }else{
+                    pthread_rwlock_unlock(&rwlock_score);
                     resp->code = 2;
                 }
                 fillCard(*resp, 1, x, y);
@@ -122,12 +132,12 @@ void fillCard(Play_Response resp, char value, int x, int y){
 //Verificar a jogada recebida, a ver se é preciso ignorar: se (x,y) estão dentro do dim e se ha mais do que 1 jogador
 int checkPlay(int x, int y){
     //Verificar se é o único jogador
-    pthread_mutex_lock(&mutex_n_players);
+    pthread_rwlock_rdlock(&rwlock_stack);
     if(n_players == 1){
-        pthread_mutex_unlock(&mutex_n_players);
+        pthread_rwlock_unlock(&rwlock_stack);
         return 1;
     }
-    pthread_mutex_unlock(&mutex_n_players);
+    pthread_rwlock_unlock(&rwlock_stack);
 
     //Verificar se as coordenadas recebidas estão dentro do board
     if(x >= dim || y >= dim || x < 0 || y < 0){                       

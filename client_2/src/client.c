@@ -11,6 +11,11 @@ int main(){
 
 	unlink(CLIENT_ADDR);
 
+	if(signal(SIGPIPE, SIG_IGN) == SIG_ERR){			//Caso uma thread tá a ler o nó de um jogador que acabou de se disconectar e a thread do jogador que se disconectou não tem tempo de eliminar o node correspondente
+		fprintf(stderr, "Couldn't define signal handler\n");
+		exit(-1);
+	}
+
 	initSDL();
 
 	sock_fd = initSocket();
@@ -87,7 +92,6 @@ void updateBoard(Play_Response resp){
 			writeCard(resp.play1[0], resp.play1[1], resp.str_play1, 200, 200, 200);
 			break;
 		case 3:		//Acabou o jogo (todas as cartas tao up)
-			//done = 1;
 		case 2:		//Jogar 2x e acertar na combinação
 			paintCard(resp.play1[0], resp.play1[1], resp.color[0], resp.color[1], resp.color[2]);
 			writeCard(resp.play1[0], resp.play1[1], resp.str_play1, 0, 0, 0);
@@ -107,6 +111,13 @@ void updateBoard(Play_Response resp){
 		case -1:	//Virar a carta da primeira jogada para cima caso o timer 5s tenha acabado ou o jogador na 2a jogada clicou numa carta UP
 			paintCard(resp.play1[0], resp.play1[1], 255, 255, 255);
 			break;
+		case 4:		//Começar novo jogo, reset do board
+			resetBoard();
+			break;
+		case 10:
+			printf("CONGRATS! YOU WON!!!\n");
+			break;
+
 	}
 }
 

@@ -11,5 +11,6 @@ void paintCard(int  board_x, int board_y , int r, int g, int b);
 void getBoardCard(int mouse_x, int mouse_y, int * board_x, int *board_y);
 int createBoardWindow();
 void closeBoardWindows(void);
+void resetBoard();
 
 #endif

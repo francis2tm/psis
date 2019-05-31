@@ -32,7 +32,7 @@ typedef struct Play_Response{
     char str_play2[3];  //String correspondente às coordenadas da play2
 }Play_Response;
 
-void initBoard(void);
+void initBoard(char flag);
 void boardPlay(Play_Response* resp, char* n_play, int* n_corrects, int x, int y);
 void fillCard(Play_Response resp, char value, int x, int y);
 int checkPlay(int x, int y);

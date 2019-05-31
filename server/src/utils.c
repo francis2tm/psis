@@ -8,8 +8,10 @@ extern int dim;
 extern pthread_mutex_t mutex_color;
 extern pthread_rwlock_t rwlock_stack_head;
 extern pthread_rwlock_t rwlock_stack;
+extern pthread_rwlock_t rwlock_score;
+extern pthread_mutex_t mutex_reset;
 extern Board_Place** board;
-extern pthread_mutex_t mutex_n_players;
+
 
 /*****************************************************************************************************
  * verifyErr ()
@@ -40,10 +42,15 @@ void initSync(){
 		fprintf(stderr, "rw_lock init ");
 		exit(-1);
 	}
-	if(pthread_mutex_init(&mutex_n_players, NULL)){
+	if(pthread_rwlock_init(&rwlock_score, NULL)){
 		fprintf(stderr, "Mutex init ");
 		exit(-1);
 	}
+	if(pthread_mutex_init(&mutex_reset, NULL)){
+		fprintf(stderr, "Mutex init ");
+		exit(-1);
+	}
+
 
 	for(int i = 0; i < dim; i++){
 		for(int j = 0; j < dim; j++){

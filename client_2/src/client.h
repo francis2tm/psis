@@ -10,6 +10,7 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <pthread.h>
+#include <signal.h>
 #include "UI_library.h"
 #include "utils.h"
 

@@ -5,19 +5,21 @@
 #include "board_library.h"
 
 
-int dim = 4;								//Dimensão do board
-Board_Place** board = NULL;					//Duplo ponteiro, posteriormente será usado para alcocar dinâmicamente em função do dim para gerar uma matriz
-char last_color[3] = {10, 25, 18};			//Última cor gerada pelo último cliente a ter sido conectado
-char prox_RGB = 0;							//Variável global utilizada pela generateColor()
-Node_Client* head = NULL;					//Head do stack dos jogadores
-int n_players = 0;							//Estrutura que contém o numero de jogadores e o respetivo mutex
+int dim = 4;												//Dimensão do board
+Board_Place** board = NULL;									//Duplo ponteiro, posteriormente será usado para alcocar dinâmicamente em função do dim para gerar uma matriz
+char last_color[3] = {10, 25, 18};							//Última cor gerada pelo último cliente a ter sido conectado
+char prox_RGB = 0;											//Variável global utilizada pela generateColor()
+Node_Client* head = NULL;									//Head do stack dos jogadores
+int n_players = 0;											//Numero total de jogadores conectado
+Score_List score = {.top_score = 0, .head = NULL, .count = 0};//Número de peças locked ao longo do jogo & score máximo (somente atualizado no final do jogo)
+char reset_flag = 0;										//Flag que fica a 1 durante o período (10s) do rest
 
-volatile char end_flag = 0;					//Flag que indica quando for para terminar o servidor
-
+volatile char end_flag = 0;									//Flag que indica quando for para terminar o servidor
+pthread_rwlock_t rwlock_score;
 pthread_mutex_t mutex_color;
+pthread_mutex_t mutex_reset;
 pthread_rwlock_t rwlock_stack_head;
 pthread_rwlock_t rwlock_stack;
-pthread_mutex_t mutex_n_players;
 
 int main(int argc, char** argv){
 	struct sockaddr_un client_addr;
@@ -30,13 +32,13 @@ int main(int argc, char** argv){
 
 	unlink(SERVER_ADDR);
 
-	initBoard();						//Alocar e preencher a board
+	initBoard(0);						//Alocar e preencher a board
 	initSync();							//Inicializar sync (locks)
 	server_fd = initSocket(size_addr);	//Setup socket
 
 	//Main thread só aceita novas conexões
 	while(!end_flag){
-		printf(" Ready to accept connections\n");	
+		printf("Ready to accept connections\n");	
 		if((client_fd = accept(server_fd, (struct sockaddr*)&client_addr, &size_addr)) == -1){	//Verficiar se não houve erro a fazer accept
 			if(end_flag){
 				break;
@@ -45,13 +47,14 @@ int main(int argc, char** argv){
 			exit(-1);
 		}
 
-		pthread_mutex_lock(&mutex_n_players);
+		pthread_rwlock_rdlock(&rwlock_stack);
 		if(n_players < MAX_PLAYERS){
-			pthread_mutex_unlock(&mutex_n_players);
+			pthread_rwlock_unlock(&rwlock_stack);
 			createPlayer(client_fd);		//Criar um novo jogador
 			printf("accepted connection\n");
 		}else{
-			pthread_mutex_unlock(&mutex_n_players);
+			pthread_rwlock_unlock(&rwlock_stack);
+			close(client_fd);				//Disconectar cliente quando n_players é max
 		}
 	}
 
@@ -60,10 +63,11 @@ int main(int argc, char** argv){
 	}
 
 	//Destruir as estruturas para a sincronização global
-	pthread_mutex_destroy(&mutex_color);		
+	pthread_mutex_destroy(&mutex_color);
+	pthread_rwlock_destroy(&rwlock_score);
+	pthread_mutex_destroy(&mutex_reset);
 	pthread_rwlock_destroy(&rwlock_stack_head);
 	pthread_rwlock_destroy(&rwlock_stack);
-	pthread_mutex_destroy(&mutex_n_players);
 	for(int i = 0; i < dim; i++){
 		for(int j = 0; j < dim; j++){
 			pthread_mutex_destroy(&board[i][j].mutex_board);
@@ -71,7 +75,7 @@ int main(int argc, char** argv){
 	}
 	deleteBoard();					//Libertar o board
 
-	sleep(2);
+	sleep(1);
 	return EXIT_SUCCESS;
 }
 

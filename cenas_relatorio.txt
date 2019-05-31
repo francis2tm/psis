@@ -25,6 +25,21 @@ do little end e big end, no entanto, mas metemos o htonl e ntohl
 
 - Explicar como fizemos para aquando o CTRL+C meter todas as threads a libertarem tudo
 
+- Não ha risco de deadlocks pois não há nenhuns 2 excertos de código em que uma thread tente por ex:
+lock(A)
+lock(B)
+
+e outra thread a tentar:
+lock(B)
+lock(A)
+
+E como o único sítio em que temos uma thread com 2 locks ao mesmo tempo é no deleteNode(), não temos o risco de deadlocks
+
+- Não é garantido considerar que globa_variable = ... é atomico porque isso depende de máquina para máquina e queremos assegurar a flexibilidade em termos de máquina para o servidor
+
+
+
+
 /*********************************PERGUNTAR*****************************************/
 -Servidor: Precisamos do (struct sockaddr*)&client_addr (preenchido no accept)?
     Ya, pq há OS que precisam disso senão a socket pode não funfar
@@ -119,12 +134,15 @@ mas dps sempre que se fizer sweep vai haver leituras desnecessárias.
 -DONE||Qd so ha um jogador, o server é que descarda as jogadas desse jogador
 -DONE||Limitar o numero de jogadores (por causa das cores) constantemente, sempre que um jogador se conecta
 -DONE||Fazer proteções (tipo verificar dim dos (x,y) recebidos pelo cliente)
--Fazer reset do jogo
--Quem ganha
--Fazer bot
+-DONE||Fazer bot
+-DONE||Programar CTRL+C do servidor
+-DONE||Fazer reset do jogo
+-DONE||Quem ganha
 -Meter cenas AF_INET
--Programar CTRL+C do servidor
 -Resolver erros valgrind
+-Tirar os detach
+-Ver se temos de checkaro valor de retorno de mutex lock e unlock
+-Meter bot a receber
 
 
 VALGRIND-----------------

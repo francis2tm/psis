@@ -14,6 +14,7 @@ typedef struct Cmn_Thr_Data_Struct{
 	Play_Response resp;			//Estrutura que é enviada ao cliente
 	char* buff_send;		//Buffer auxiliar para enviar data ao cliente
 	int sock_fd;
+	int n_corrects;			//Score do jogador
 	sem_t sem;
 	pthread_mutex_t mutex_timer;
 }Cmn_Thr_Data;
