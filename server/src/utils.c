@@ -157,8 +157,7 @@ void semaphore(char op, sem_t* sem){
 			break;
 	}
 
-	if(err){
+	if(err){												//Não fazemos exit() porque pode acontecer um sem_post a uma thread q tenha acabado de sair
 		fprintf(stderr, "Erro com wait/post sem");
-		exit(EXIT_FAILURE);
 	}
 }
