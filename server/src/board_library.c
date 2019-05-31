@@ -1,6 +1,7 @@
 #include "board_library.h"
 #include "utils.h"
 #include "player_manage.h"
+#include "server.h"
 
 extern int dim;
 extern Board_Place** board;
@@ -65,7 +66,7 @@ void initBoard(char flag){
 
 //Processa as jogada de um determinado jogador que enviou ao servidor as coordenadas (x,y)
 void boardPlay(Play_Response* resp, char* n_play, int* n_corrects, int x, int y){
-    pthread_mutex_lock(&board[x][y].mutex_board);
+    mutex(LOCK, &board[x][y].mutex_board);
     if(board[x][y].is_up){
         if(resp->code == 1){    //Se for a segunda jogada e for para virar a primeira carta para baixo
             resp->code = -1;
@@ -96,14 +97,14 @@ void boardPlay(Play_Response* resp, char* n_play, int* n_corrects, int x, int y)
             if (!strcmp(first_str, secnd_str)){
                 printf("CORRECT!!!\n\n");
                 *n_corrects += 2;
-                pthread_rwlock_wrlock(&rwlock_score);
+                rwLock(W_LOCK, &rwlock_score);
                 score.top_score += 2;
                 if(score.top_score == dim*dim){
-                    pthread_rwlock_unlock(&rwlock_score);
+                    rwLock(UNLOCK, &rwlock_score);
                     resp->code = 3;
                     printf("ACABOU\n\n");
                 }else{
-                    pthread_rwlock_unlock(&rwlock_score);
+                    rwLock(UNLOCK, &rwlock_score);
                     resp->code = 2;
                 }
                 fillCard(*resp, 1, x, y);
@@ -117,7 +118,7 @@ void boardPlay(Play_Response* resp, char* n_play, int* n_corrects, int x, int y)
             *n_play = 0;
         }
     }
-    pthread_mutex_unlock(&board[x][y].mutex_board);
+    mutex(UNLOCK, &board[x][y].mutex_board);
 }
 
 //Preenche uma carta do board com o respetivo dono
@@ -132,12 +133,12 @@ void fillCard(Play_Response resp, char value, int x, int y){
 //Verificar a jogada recebida, a ver se é preciso ignorar: se (x,y) estão dentro do dim e se ha mais do que 1 jogador
 int checkPlay(int x, int y){
     //Verificar se é o único jogador
-    pthread_rwlock_rdlock(&rwlock_stack);
+    rwLock(R_LOCK, &rwlock_stack);
     if(n_players == 1){
-        pthread_rwlock_unlock(&rwlock_stack);
+        rwLock(UNLOCK, &rwlock_stack);
         return 1;
     }
-    pthread_rwlock_unlock(&rwlock_stack);
+    rwLock(UNLOCK, &rwlock_stack);
 
     //Verificar se as coordenadas recebidas estão dentro do board
     if(x >= dim || y >= dim || x < 0 || y < 0){                       

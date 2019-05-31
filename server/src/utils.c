@@ -101,3 +101,64 @@ void initSigHandlers(){
 		exit(-1);
 	}
 }
+
+//Faz o pthread_rwlock_(op), sendo op rdlock, wrlock ou unlock
+void rwLock(char op, pthread_rwlock_t* lock){
+	int err = 0;
+
+	switch (op){
+		case R_LOCK:
+			err = pthread_rwlock_rdlock(lock);
+			break;
+		case W_LOCK:
+			err = pthread_rwlock_wrlock(lock);
+			break;
+
+		case UNLOCK:
+			err = pthread_rwlock_unlock(lock);
+			break;
+	}
+
+	if(err){
+		fprintf(stderr, "Erro com lock/unlock rw_lock");
+		exit(EXIT_FAILURE);
+	}
+}
+
+void mutex(char op, pthread_mutex_t* lock){
+	int err = 0;
+
+	switch (op){
+		case LOCK:
+			err = pthread_mutex_lock(lock);
+			break;
+
+		case UNLOCK:
+			err = pthread_mutex_unlock(lock);
+			break;
+	}
+
+	if(err){
+		fprintf(stderr, "Erro com lock/unlock mutex");
+		exit(EXIT_FAILURE);
+	}
+}
+
+void semaphore(char op, sem_t* sem){
+	int err = 0;
+
+	switch (op){
+		case WAIT:
+			err = sem_wait(sem);
+			break;
+
+		case POST:
+			err = sem_post(sem);
+			break;
+	}
+
+	if(err){
+		fprintf(stderr, "Erro com wait/post sem");
+		exit(EXIT_FAILURE);
+	}
+}

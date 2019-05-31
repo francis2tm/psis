@@ -1,6 +1,6 @@
 #include "com.h"
 #include "utils.h"
-
+#include "server.h"
 
 extern int dim;
 extern pthread_mutex_t mutex_color;
@@ -25,23 +25,23 @@ void broadcastBoard(Play_Response resp, char* buff_send){
 
 	memcpy(buff_send, &resp, sizeof(Play_Response));
 
-	pthread_rwlock_rdlock(&rwlock_stack_head);
+	rwLock(R_LOCK, &rwlock_stack_head);
 	if(head != NULL){												//Só enviar se houver clientes
 		//Enviar à head
 		enviar(head->sock_fd, buff_send, sizeof(Play_Response));
 
-		pthread_rwlock_rdlock(&rwlock_stack);						//Bloquear para leitura a lista toda
+		rwLock(R_LOCK, &rwlock_stack);						//Bloquear para leitura a lista toda
 		aux = head->next;
-		pthread_rwlock_unlock(&rwlock_stack_head);					//Já podemos desbloquear a head
+		rwLock(UNLOCK, &rwlock_stack_head);					//Já podemos desbloquear a head
 
 		//Enviar ao resto da lista
 		while(aux != NULL){
 			enviar(aux->sock_fd, buff_send, sizeof(Play_Response));
 			aux = aux->next;
 		}
-		pthread_rwlock_unlock(&rwlock_stack);
+		rwLock(UNLOCK, &rwlock_stack);
 	}else{
-		pthread_rwlock_unlock(&rwlock_stack_head);
+		rwLock(UNLOCK, &rwlock_stack_head);
 	}    
 }
 
@@ -52,12 +52,12 @@ int sendActualBoard(int client_fd, char* buff_send){
 
     for(int i = 0; i < dim; i++){
         for(int j = 0; j < dim; j++){
-            pthread_mutex_lock(&board[i][j].mutex_board);
+            mutex(LOCK, &board[i][j].mutex_board);
             if(board[i][j].is_up){                                  //Só enviar cartas que estão para cima
 				resp.code = board[i][j].code;
 				cpy3CharVec(board[i][j].owner_color, resp.color);
 				strcpy(resp.str_play1, board[i][j].str);
-				pthread_mutex_unlock(&board[i][j].mutex_board);
+				mutex(UNLOCK, &board[i][j].mutex_board);
 
 				resp.play1[0] = htonl(i);
 				resp.play1[1] = htonl(j);
@@ -66,7 +66,7 @@ int sendActualBoard(int client_fd, char* buff_send){
 				memcpy(buff_send, &resp, sizeof(Play_Response));
 				err = enviar(client_fd, buff_send, sizeof(Play_Response));
             }else{
-				pthread_mutex_unlock(&board[i][j].mutex_board);
+				mutex(UNLOCK, &board[i][j].mutex_board);
 			}
         }
     }
@@ -141,28 +141,28 @@ void sendDim(int client_fd, Cmn_Thr_Data* common_data, Node_Client* client_data)
 void broadcastThreads(int _sockfd){
 	Node_Client* aux;
 
-	pthread_rwlock_rdlock(&rwlock_stack_head);
+	rwLock(R_LOCK, &rwlock_stack_head);
 	if(head != NULL){												//Só enviar se houver clientes
 		//Notificar a head
 		if(head->sock_fd != _sockfd){								//Não fazer sem_post à thread "responsável" pelo reset
-			sem_post(head->sem_pointer);
+			semaphore(POST, head->sem_pointer);
 		}
 		
 
-		pthread_rwlock_rdlock(&rwlock_stack);						//Bloquear para leitura a lista toda
+		rwLock(R_LOCK, &rwlock_stack);						//Bloquear para leitura a lista toda
 		aux = head->next;
-		pthread_rwlock_unlock(&rwlock_stack_head);					//Já podemos desbloquear a head
+		rwLock(UNLOCK, &rwlock_stack_head);					//Já podemos desbloquear a head
 
 		//Notificar o resto da lista
 		while(aux != NULL){
 			if(aux->sock_fd != _sockfd){								//Não fazer sem_post à thread "responsável" pelo reset
-				sem_post(aux->sem_pointer);
+				semaphore(POST, aux->sem_pointer);
 			}
 			aux = aux->next;
 		}
-		pthread_rwlock_unlock(&rwlock_stack);
+		rwLock(UNLOCK, &rwlock_stack);
 	}else{
-		pthread_rwlock_unlock(&rwlock_stack_head);
+		rwLock(UNLOCK, &rwlock_stack_head);
 	}
 }
 
@@ -171,10 +171,10 @@ void sendToWinners(Play_Response resp, char* buff_send){
 
 	memcpy(buff_send, &resp, sizeof(Play_Response));
 
-	pthread_rwlock_rdlock(&rwlock_score);
+	rwLock(R_LOCK, &rwlock_score);
 	for(aux = score.head; aux != NULL; aux = aux->next){
 		enviar(aux->sock_fd, buff_send, sizeof(Play_Response));
 	}
 
-	pthread_rwlock_unlock(&rwlock_score);
+	rwLock(UNLOCK, &rwlock_score);
 }

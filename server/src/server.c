@@ -47,13 +47,13 @@ int main(int argc, char** argv){
 			exit(-1);
 		}
 
-		pthread_rwlock_rdlock(&rwlock_stack);
+		rwLock(R_LOCK, &rwlock_stack);
 		if(n_players < MAX_PLAYERS){
-			pthread_rwlock_unlock(&rwlock_stack);
+			rwLock(UNLOCK, &rwlock_stack);
 			createPlayer(client_fd);		//Criar um novo jogador
 			printf("accepted connection\n");
 		}else{
-			pthread_rwlock_unlock(&rwlock_stack);
+			rwLock(UNLOCK, &rwlock_stack);
 			close(client_fd);				//Disconectar cliente quando n_players é max
 		}
 	}

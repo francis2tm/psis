@@ -117,6 +117,7 @@ mas dps sempre que se fizer sweep vai haver leituras desnecessárias.
     Progamar o ctrl + C
 
 - Quando um cliente se conectou e ja foi antingido o num_max de players, ele pode começar a jogar imediatamente que haja 1 vaga ou posso cagar nele?
+    Fechar a conexão imediatamente a seguir
 
 - Checkar o initSocket() 
 
@@ -138,11 +139,13 @@ mas dps sempre que se fizer sweep vai haver leituras desnecessárias.
 -DONE||Programar CTRL+C do servidor
 -DONE||Fazer reset do jogo
 -DONE||Quem ganha
+-DONE||Ver se temos de checkar o valor de retorno de mutex lock e unlock
 -Meter cenas AF_INET
 -Resolver erros valgrind
 -Tirar os detach
--Ver se temos de checkaro valor de retorno de mutex lock e unlock
+
 -Meter bot a receber
+-Dizer a todos os clientes que o jogo acabou
 
 
 VALGRIND-----------------

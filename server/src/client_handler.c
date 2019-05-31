@@ -1,6 +1,7 @@
 #include "client_handler.h"
 #include "utils.h"
 #include "com.h"
+#include "server.h"
 
 extern Board_Place** board;
 extern int dim;
@@ -61,54 +62,54 @@ void* playerHandler(Node_Client* client_data){
 			continue;
 		}
 		
-		pthread_mutex_lock(&common_data.mutex_timer);									//Vamos mudar o common_data.resp, logo, bloquear a estrutura
+		mutex(LOCK, &common_data.mutex_timer);									//Vamos mudar o common_data.resp, logo, bloquear a estrutura
 		//Processar a jogada recebida
 		if(common_data.resp.code != -2 && common_data.resp.code != 4){				//Descartar as jogadas feitas durante os 2s ou durante o timer do reset de 10s
 			boardPlay(&common_data.resp, &n_play, &common_data.n_corrects, play_recv[0], play_recv[1]);	//Processar a play recebida pelo jogador
-			pthread_mutex_unlock(&common_data.mutex_timer);
+			mutex(UNLOCK, &common_data.mutex_timer);
 			
 			broadcastBoard(common_data.resp, common_data.buff_send);						//Mandar a todos os jogadores a play processada (enviar o resp)
 			
 			if(n_play == 1){															//Se tivermos na primeira jogada
 				if(!poll(&poll_sock_fd, 1, 5000)){											//Ativar o timer 5s
-					pthread_mutex_lock(&common_data.mutex_timer);							//Teoricamente a thread_timer não irá estar ativa, mas evitar race condition no resp
+					mutex(LOCK, &common_data.mutex_timer);							//Teoricamente a thread_timer não irá estar ativa, mas evitar race condition no resp
 					
-					pthread_mutex_lock(&board[common_data.resp.play1[0]][common_data.resp.play1[1]].mutex_board);
+					mutex(LOCK, &board[common_data.resp.play1[0]][common_data.resp.play1[1]].mutex_board);
 					fillCard(common_data.resp, 0, common_data.resp.play1[0], common_data.resp.play1[1]);
-					pthread_mutex_unlock(&board[common_data.resp.play1[0]][common_data.resp.play1[1]].mutex_board);
+					mutex(UNLOCK, &board[common_data.resp.play1[0]][common_data.resp.play1[1]].mutex_board);
 
 					common_data.resp.code = -1;
 					broadcastBoard(common_data.resp, common_data.buff_send); 				//Mandar alterações do board a todos os jogadores
 
 					common_data.resp.code = 0;
-					pthread_mutex_unlock(&common_data.mutex_timer);							//Desbloquear o resp
+					mutex(UNLOCK, &common_data.mutex_timer);							//Desbloquear o resp
 					
 					n_play = 0;
 					printf("poll timed out\n");
 				}
 			}else if(common_data.resp.code == -2){												//Se o jogador errou na combinação, ativar timer 2s
-				sem_post(&common_data.sem);														//Ativar thread de timer 
+				semaphore(POST, &common_data.sem);														//Ativar thread de timer 
 				continue;
 			}
 			
-			pthread_mutex_lock(&mutex_reset);
+			mutex(LOCK, &mutex_reset);
 			if(common_data.resp.code == 3){														//O boardPlay() garante que só 1 thread consegue o resp.code = 3
 				reset_flag = 1;
-				pthread_mutex_unlock(&mutex_reset);
-				sem_post(&common_data.sem);														//Ativar thread de timer
+				mutex(UNLOCK, &mutex_reset);
+				semaphore(POST, &common_data.sem);														//Ativar thread de timer
 			}else{
-				pthread_mutex_unlock(&mutex_reset);
+				mutex(UNLOCK, &mutex_reset);
 			} 
 		}else{
-			pthread_mutex_unlock(&common_data.mutex_timer);
+			mutex(UNLOCK, &common_data.mutex_timer);
 		}
 	}
 	//Cliente disconectou-se ou o servidor está a terminar
 	//Destruição da thread timer
-	pthread_mutex_lock(&common_data.mutex_timer);		//Ter a certeza que o thread de timer não fica com nenhuma lock antes de morrer -> esperar que ela faça tudo o que tem a fazer
+	mutex(LOCK, &common_data.mutex_timer);		//Ter a certeza que o thread de timer não fica com nenhuma lock antes de morrer -> esperar que ela faça tudo o que tem a fazer
 	common_data.resp.code = CANCEL_TIMER_THREAD;
-	pthread_mutex_unlock(&common_data.mutex_timer);		//Não é preciso pois a lock vai ser agora destruída, é meramente uma formalidade 
-	sem_post(&common_data.sem);							//Ativar a thread timer para ela se auto destruir
+	mutex(UNLOCK, &common_data.mutex_timer);		//Não é preciso pois a lock vai ser agora destruída, é meramente uma formalidade 
+	semaphore(POST, &common_data.sem);							//Ativar a thread timer para ela se auto destruir
 	pthread_join(thread_id, NULL);
 
 	if(!end_flag){										//Só vale a pena fazer estas operações se o servidor não estiver a terminar
@@ -116,9 +117,9 @@ void* playerHandler(Node_Client* client_data){
 
 		//Se o jogador tiver saído durante o timer de 5s, temos de virar a carta para baixo
 		if(n_play == 1){
-			pthread_mutex_lock(&board[common_data.resp.play1[0]][common_data.resp.play1[1]].mutex_board);
+			mutex(LOCK, &board[common_data.resp.play1[0]][common_data.resp.play1[1]].mutex_board);
 			fillCard(common_data.resp, 0, common_data.resp.play1[0], common_data.resp.play1[1]);
-			pthread_mutex_unlock(&board[common_data.resp.play1[0]][common_data.resp.play1[1]].mutex_board);
+			mutex(UNLOCK, &board[common_data.resp.play1[0]][common_data.resp.play1[1]].mutex_board);
 			common_data.resp.code = -1;
 			broadcastBoard(common_data.resp, common_data.buff_send); 				//Mandar alterações do board a todos os jogadores
 		}
@@ -134,28 +135,28 @@ void* playerHandler(Node_Client* client_data){
 
 void* timerHandler(Cmn_Thr_Data* common_data){
 	while(1){
-		sem_wait(&common_data->sem);							//Bloquear esta thread até que um timer seja necessário
+		semaphore(WAIT, &common_data->sem);							//Bloquear esta thread até que um timer seja necessário
 
 		if(common_data->resp.code == CANCEL_TIMER_THREAD){		//Flag para esta thread se auto-destruir
 			break;
 		}
 
-		pthread_mutex_lock(&common_data->mutex_timer);			//Mutex para não deixar que o resp ser mudado pela outra thread
+		mutex(LOCK, &common_data->mutex_timer);			//Mutex para não deixar que o resp ser mudado pela outra thread
 		if(common_data->resp.code == -2){
-			pthread_mutex_unlock(&common_data->mutex_timer);			//Mutex para não deixar que o resp ser mudado pela outra thread
+			mutex(UNLOCK, &common_data->mutex_timer);			//Mutex para não deixar que o resp ser mudado pela outra thread
 
 			sleep(2);
 
-			pthread_mutex_lock(&common_data->mutex_timer);			//Mutex para não deixar que o resp ser mudado pela outra thread
+			mutex(LOCK, &common_data->mutex_timer);			//Mutex para não deixar que o resp ser mudado pela outra thread
 
 			//Voltar as cartas erradas para baixo
-			pthread_mutex_lock(&board[common_data->resp.play1[0]][common_data->resp.play1[1]].mutex_board);
+			mutex(LOCK, &board[common_data->resp.play1[0]][common_data->resp.play1[1]].mutex_board);
 			fillCard(common_data->resp, 0, common_data->resp.play1[0], common_data->resp.play1[1]);
-			pthread_mutex_unlock(&board[common_data->resp.play1[0]][common_data->resp.play1[1]].mutex_board);
+			mutex(UNLOCK, &board[common_data->resp.play1[0]][common_data->resp.play1[1]].mutex_board);
 
-			pthread_mutex_lock(&board[common_data->resp.play2[0]][common_data->resp.play2[1]].mutex_board);
+			mutex(LOCK, &board[common_data->resp.play2[0]][common_data->resp.play2[1]].mutex_board);
 			fillCard(common_data->resp, 0, common_data->resp.play2[0], common_data->resp.play2[1]);
-			pthread_mutex_unlock(&board[common_data->resp.play2[0]][common_data->resp.play2[1]].mutex_board);
+			mutex(UNLOCK, &board[common_data->resp.play2[0]][common_data->resp.play2[1]].mutex_board);
 
 			//Enviar a todos os jogadores as cartas viradas para baixo
 			common_data->resp.code = -4;
@@ -163,21 +164,21 @@ void* timerHandler(Cmn_Thr_Data* common_data){
 
 			//Jogador pode voltar a fazer jogadas
 			common_data->resp.code = 0;
-			pthread_mutex_unlock(&common_data->mutex_timer);
+			mutex(UNLOCK, &common_data->mutex_timer);
 		}else if(common_data->resp.code == 3){					//Quando esta é a thread timer da thread que recebeu a última jogada (esta é a única que tem resp.code = 3)									
 			common_data->resp.code = 4;							//Basicamente usar o resp.code como flag para a thread que recebe jogadas as descartar
-			pthread_mutex_unlock(&common_data->mutex_timer);	//Na boa unlock estar aqui pois a outra thread nunca vai mudar common_data com resp.code = 4
+			mutex(UNLOCK, &common_data->mutex_timer);	//Na boa unlock estar aqui pois a outra thread nunca vai mudar common_data com resp.code = 4
 			score.sem_pointer = &common_data->sem;				//Meter o ponteiro da responsável dentro da estrutura score, n é preciso sync pq ainda nenhuma das outras threads foram ativadas
 			score.top_score = 0;								// Meter a 0 pq esta variavel foi usada para contar o nº jogadas durante o jogo
 			tryUpdateScore(common_data->n_corrects, common_data->sock_fd);
 			broadcastThreads(common_data->sock_fd);				//Notificar as outras threads do reset, meter as outras threads a descartar jogadas de jogadores
-			sem_wait(&common_data->sem);						//Esperar que as threads escolham o(s) vencedor(es)
+			semaphore(WAIT, &common_data->sem);						//Esperar que as threads escolham o(s) vencedor(es)
 
-			pthread_mutex_lock(&common_data->mutex_timer);			//Mutex para não deixar que o resp ser mudado pela outra thread
+			mutex(LOCK, &common_data->mutex_timer);			//Mutex para não deixar que o resp ser mudado pela outra thread
 			common_data->resp.code = 10;
 			sendToWinners(common_data->resp, common_data->buff_send);	//Notificar os vencedores
 			common_data->resp.code = 4;
-			pthread_mutex_unlock(&common_data->mutex_timer);
+			mutex(UNLOCK, &common_data->mutex_timer);
 
 			printf("Inicializando timer 10s\n");
 			sleep(10);											//Timer
@@ -186,35 +187,35 @@ void* timerHandler(Cmn_Thr_Data* common_data){
 
 			broadcastThreads(common_data->sock_fd);				//Notificar todas a threads que o reset acabou
 
-			pthread_mutex_lock(&common_data->mutex_timer);
+			mutex(LOCK, &common_data->mutex_timer);
 			common_data->resp.code = 0;
 			common_data->n_corrects = 0;
-			pthread_mutex_unlock(&common_data->mutex_timer);
+			mutex(UNLOCK, &common_data->mutex_timer);
 
-			pthread_mutex_lock(&mutex_reset);
+			mutex(LOCK, &mutex_reset);
 			reset_flag = 0;
-			pthread_mutex_unlock(&mutex_reset);
+			mutex(UNLOCK, &mutex_reset);
 
-			pthread_rwlock_wrlock(&rwlock_score);
+			rwLock(W_LOCK, &rwlock_score);
 			score.top_score = 0;
 			score.count = 0;
 			deleteScore();
-			pthread_rwlock_unlock(&rwlock_score);
+			rwLock(UNLOCK, &rwlock_score);
 			
 			printf("Novo jogo ready\n");
 
 		}else if(reset_flag){									//Quando todas as N-1 timer threads tiverem que fazer o reset do seu respetivo cliente
 			common_data->resp.code = 4;							//Basicamente usar o resp.code como flag para a thread que recebe jogadas as descartar
-			pthread_mutex_unlock(&common_data->mutex_timer);	//Na boa unlock estar aqui pois a outra thread nunca vai mudar common_data com resp.code = 4
+			mutex(UNLOCK, &common_data->mutex_timer);	//Na boa unlock estar aqui pois a outra thread nunca vai mudar common_data com resp.code = 4
 			tryUpdateScore(common_data->n_corrects, common_data->sock_fd);
 
-			sem_wait(&common_data->sem);						//Adormecer thread até que o timer 10s do reset tenha acabado (esperar pela notificação da thread "responsavel")
-			pthread_mutex_lock(&common_data->mutex_timer);
+			semaphore(WAIT, &common_data->sem);						//Adormecer thread até que o timer 10s do reset tenha acabado (esperar pela notificação da thread "responsavel")
+			mutex(LOCK, &common_data->mutex_timer);
 			common_data->resp.code = 0;
 			common_data->n_corrects = 0;
-			pthread_mutex_unlock(&common_data->mutex_timer);
+			mutex(UNLOCK, &common_data->mutex_timer);
 		}else{													//Garantir que não há deadlock
-			pthread_mutex_unlock(&common_data->mutex_timer);
+			mutex(UNLOCK, &common_data->mutex_timer);
 		}
 		
 	}
