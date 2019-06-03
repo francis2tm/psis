@@ -1,3 +1,17 @@
+/******************************************************************************
+* 						2018/2019 - Programação de Sistemas
+*
+* Elementos do Grupo: Francisco Melo Nº 86998
+*					            Inês Moreira Nº 88050
+*
+* SECÇÃO: CLIENTE
+* FICHEIRO: client.h
+*
+* Descrição: Contém a declaração das funções presentes no ficheiro "client.c"
+* bem como a declaração da estrutura responsável pelo armazenamento das 
+* escolhas do jogador
+*****************************************************************************/
+
 #ifndef _CLIENT_H
 #define _CLIENT_H
 
@@ -16,8 +30,8 @@
 
 
 #define MAX_SIZE_WINDOW 800
-#define SERVER_ADDR "../server_sock"
-#define CLIENT_ADDR "../client_sock"
+
+#define PORT 3000
 
 typedef struct Play_Response{
   int code;  

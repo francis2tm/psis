@@ -10,7 +10,7 @@
 #include <pthread.h>
 #include <signal.h>
 
-#define SERVER_ADDR "../server_sock"
+#define PORT 3000
 
 #define MAX_DIM 36 	                            //sqrt(26*26*2) = 36.77  ~ 36 (para ser uma matriz quadrada)
 #define IS_EVEN(x) ( ((x)%2 ) ? (0) : (1))		//Retorna 1 se for x for par, 0 se for ímpar 

@@ -1,3 +1,13 @@
+/******************************************************************************
+* 						2018/2019 - Programação de Sistemas
+*
+* Elementos do Grupo: Francisco Melo Nº 86998
+*					  Inês Moreira Nº 88050
+*
+* SECÇÃO: SERVIDOR
+* FICHEIRO: client_handler.h
+*
+*****************************************************************************/
 #ifndef _CLIENT_HANDLER_H
 #define _CLIENT_HANDLER_H
 
@@ -19,9 +29,11 @@ typedef struct Cmn_Thr_Data_Struct{
 	pthread_mutex_t mutex_timer;
 }Cmn_Thr_Data;
 
-#define CANCEL_TIMER_THREAD -200
+#define CANCEL_TIMER_THREAD -1
 
 void* playerHandler(Node_Client* client_data);
 void* timerHandler(Cmn_Thr_Data* common_data);
+void resetMaster(Cmn_Thr_Data* common_data);
+void resetSlave(Cmn_Thr_Data* common_data);
 
 #endif

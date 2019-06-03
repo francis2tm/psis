@@ -1,3 +1,20 @@
+/******************************************************************************
+* 						2018/2019 - Programação de Sistemas
+*
+* Elementos do Grupo: Francisco Melo Nº 86998
+*					  Inês Moreira Nº 88050
+*
+* SECÇÃO: SERVIDOR
+* FICHEIRO: board_library.c
+*
+* Funcionalidades: 
+*	- Preencher o board inicialmente com strings;
+*   - Verificar se uma dada coordenada recebida é válida;
+*   - Processamento de jogadas, atualizando o resp que vai ser enviado ao 
+* cliente;
+*   - Guardar informação do "dono" de uma dada carta virada.
+*****************************************************************************/
+
 #include "board_library.h"
 #include "utils.h"
 #include "player_manage.h"
@@ -10,7 +27,18 @@ extern pthread_rwlock_t rwlock_stack;
 extern Score_List score;
 extern int n_players;
 
-//Aloca e preenche o board com strings
+/******************************************************************************
+* void initBoard(char flag)
+*
+* Argumentos: char flag: flag que verifica se é preciso alocar ou não de novo 
+* o board, isto porque quando o jogo for reiniciado não será necessário alocar
+* o tabuleiro pois este fora alocado no jogo que acabou de terminar;
+* 
+* Retorno: void;
+*
+* Descrição: Função que aloca memória para o board e inicializa o tabuleiro
+* com strings.
+*****************************************************************************/
 void initBoard(char flag){
     int count  = 0;
     int i, j;
@@ -28,7 +56,6 @@ void initBoard(char flag){
             }
         }
     }
-    
 
 	//Inicializar a matriz
 	for(i = 0; i < (dim); i++){
@@ -64,9 +91,23 @@ void initBoard(char flag){
     }
 }
 
+/******************************************************************************
+* void boardPlay(Play_Response* resp, char* n_play, int* n_corrects, int x, int y)
+*
+* Argumentos: Play_Response* resp: resp do cliente que selecionou (x,y)
+*             char* n_play: se for a primeira jogada (1) se for a segunda (0);
+*             int* n_corrects: respostas corretas de um jogador;
+*             int x: coordenada x do board;
+*             int y: coordenada y do board;
+
+* Retorno: void;
+*
+* Descrição: Função que recebendo uma dada coordenada a processa atualizando
+* a informação de modo a enviá-la posteriormente ao cliente;
+*****************************************************************************/
 //Processa as jogada de um determinado jogador que enviou ao servidor as coordenadas (x,y)
 void boardPlay(Play_Response* resp, char* n_play, int* n_corrects, int x, int y){
-    mutex(LOCK, &board[x][y].mutex_board);
+    mutex(LOCK, &(board[x][y].mutex_board));
     if(board[x][y].is_up){
         if(resp->code == 1){    //Se for a segunda jogada e for para virar a primeira carta para baixo
             resp->code = -1;
@@ -118,10 +159,23 @@ void boardPlay(Play_Response* resp, char* n_play, int* n_corrects, int x, int y)
             *n_play = 0;
         }
     }
-    mutex(UNLOCK, &board[x][y].mutex_board);
+    mutex(UNLOCK, &(board[x][y].mutex_board));
 }
 
-//Preenche uma carta do board com o respetivo dono
+/******************************************************************************
+* void fillCard(Play_Response resp, char value, int x, int y)
+*
+* Argumentos: Play_Response resp: informação do dono da carta;
+*             char value: valor para o is_up (0 ou 1) dependendo se a carta está
+* virada ou não;
+*             int x: coordenada x do tabuleiro da peça escolhida;
+*             int y: coordenada y do tabuleiro da peça escolhida;
+*
+* Retorno: void;
+*
+* Descrição: Função que preenche uma carta do tabuleiro com o respetivo dono (isto
+* é, cliente que a virou)
+*****************************************************************************/
 void fillCard(Play_Response resp, char value, int x, int y){
     board[x][y].is_up = value;
     board[x][y].code = resp.code;
@@ -130,7 +184,19 @@ void fillCard(Play_Response resp, char value, int x, int y){
     }
 }
 
-//Verificar a jogada recebida, a ver se é preciso ignorar: se (x,y) estão dentro do dim e se ha mais do que 1 jogador
+/******************************************************************************
+* int checkPlay(int x, int y)
+*
+* Argumentos: int x: coordenada x do tabuleiro que foi selecionada
+*             int y: coordenada y do tabuleiro que foi selecionada
+*
+* Retorno: int 0: jogada válida;
+*          int 1: jogada inválida;   
+*
+* Descrição: Função que analisa o número de jogadores e se este for maior que
+* 1 e se as coordenadas recebidas estiverem no tabuleiro irá retornar 0 
+* (sucesso, que equivale a uma jogada válida).
+*****************************************************************************/
 int checkPlay(int x, int y){
     //Verificar se é o único jogador
     rwLock(R_LOCK, &rwlock_stack);
@@ -147,7 +213,15 @@ int checkPlay(int x, int y){
     return 0;
 }
 
-//Liberta a memória ocupada pelo board
+/******************************************************************************
+* void deleteBoard()
+*
+* Argumentos: null;
+*
+* Retorno: void;
+*
+* Descrição: Função que liberta a memória anteriormente alocada para o board
+*****************************************************************************/
 void deleteBoard(){
     int i;
 

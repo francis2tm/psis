@@ -1,3 +1,19 @@
+/******************************************************************************
+* 						2018/2019 - Programação de Sistemas
+*
+* Elementos do Grupo: Francisco Melo Nº 86998
+*					  Inês Moreira Nº 88050
+*
+* SECÇÃO: SERVIDOR
+* FICHEIRO: utils.c
+*
+* Funcionalidades: 
+*	- Verificar erros de alocação de memória;
+*   - Verificar validade dos argumentos de entrada;
+*   - Inicialização de variáveis de sincronização;
+*   - Ignorar sinais;
+*	- Generalização de variáveis de sincronização;
+*****************************************************************************/
 #include "utils.h"
 #include "board_library.h"
 #include "server.h"
@@ -13,13 +29,16 @@ extern pthread_mutex_t mutex_reset;
 extern Board_Place** board;
 
 
-/*****************************************************************************************************
- * verifyErr ()
- *  Arguments: p: ponteiro genérico
- *  Returns: void
- *  Description: Verifica se um ponteiro aponta para null ou não. Função utilizada para verificar o sucesso
- * de mallocs ou de abertura de ficheiros
- ****************************************************************************************************/
+/******************************************************************************
+* void verifyErr(void *p)
+*
+* Argumentos: *p:  ponteiro genérico
+*
+* Retorno:  void
+*
+* Descrição: Verifica se um ponteiro aponta para null ou não. Função utilizada 
+* para verificar o sucesso de mallocs ou de abertura de ficheiros
+*****************************************************************************/
 void verifyErr(void *p){
 	if(p == NULL){
 		fprintf(stderr, "Erro a alocar memoria");
@@ -27,7 +46,16 @@ void verifyErr(void *p){
 	}
 }
 
-//Inicializar variáveis de sincronização
+/******************************************************************************
+* void initSync()
+*
+* Argumentos: null;
+*
+* Retorno:  void;
+*
+* Descrição: Inicializar variáveis de sincronização e verificar se foram bem 
+* inicializadas;
+*****************************************************************************/
 void initSync(){
 
 	if(pthread_mutex_init(&mutex_color, NULL)){
@@ -62,14 +90,34 @@ void initSync(){
 	}	
 }
 
-//Copia um vetor de 3chars src para outro vetor de 3chars dest (estes vetores não são strings)
+/******************************************************************************
+* inline void cpy3CharVec(char* src, char* dest)
+*
+* Argumentos: char* src: de onde quero copiar;
+*			  char* dest: para onde quero copiar;
+*
+* Retorno:  void;
+*
+* Descrição: Função que copia a informação da cor do jogador (3 RGB) para a pintar 
+*****************************************************************************/
 inline void cpy3CharVec(char* src, char* dest){
 	dest[0] = src[0];
 	dest[1] = src[1];
 	dest[2] = src[2];
 }
 
-//Verifica se os argumentos de entrada são válidos e depois processa-os
+/******************************************************************************
+* void processArgs(int argc, char** argv)
+*
+* Argumentos: int argc: numero de argumentos;
+*			  char** argv: argumentos;
+*
+* Retorno:  void;
+*
+* Descrição: Função que verifica se os argumentos recebidos são 2 e se o 
+* segundo argumento (dimensão do board) é maior que 2 e menor que a dimensão 
+* máxima permitida. Se tal acontecer guarda a dimensão do baord inserida.
+*****************************************************************************/
 void processArgs(int argc, char** argv){
 	if(argc != 2){	//Só pode haver o argumento a indiar a dimensão
 		perror("Invalid input arguments");
@@ -83,7 +131,16 @@ void processArgs(int argc, char** argv){
 	}
 }
 
-//Define os 2 signal handlers: Ignorar SIGPIPE para garantir longevidade do servidor e SIGINT para desligar o servidor
+/******************************************************************************
+* void initSigHandlers()
+*
+* Argumentos: null;
+*
+* Retorno:  void;
+*
+* Descrição: Define os 2 signal handlers, isto é ignorar SIGPIPE para garantir 
+* longevidade do servidor e SIGINT para desligar o servidor.
+*****************************************************************************/
 void initSigHandlers(){
 	struct sigaction a;
 
@@ -102,7 +159,17 @@ void initSigHandlers(){
 	}
 }
 
-//Faz o pthread_rwlock_(op), sendo op rdlock, wrlock ou unlock
+/******************************************************************************
+* void rwLock(char op, pthread_rwlock_t* lock)
+*
+* Argumentos: char op: escolha entre 'rdlock', 'rdlock' e 'unlock';
+*			  pthread_rwlock_t* lock: identificador;
+*
+* Retorno:  void;
+*
+* Descrição: Função que faz pthread_rwlock_(op), sendo op rdlock, rdlock ou 
+* unlock. Verifica se tanto os locks como unlocks foram efectuados com sucesso
+*****************************************************************************/
 void rwLock(char op, pthread_rwlock_t* lock){
 	int err = 0;
 
@@ -120,11 +187,22 @@ void rwLock(char op, pthread_rwlock_t* lock){
 	}
 
 	if(err){
-		fprintf(stderr, "Erro com lock/unlock rw_lock");
+		fprintf(stderr, "Erro com lock/unlock rwlock sem");
 		exit(EXIT_FAILURE);
 	}
 }
 
+/******************************************************************************
+* void mutex(char op, pthread_mutex_t* lock)
+*
+* Argumentos: char op: escolha entre 'lock' e 'unlock'
+*			  pthread_mutex_t* lock: identificador;
+*
+* Retorno:  void;
+*
+* Descrição: Função que faz pthread_mutex_(op), sendo op lock, ou unlock. 
+* Verifica se tanto os locks como unlocks foram efectuados com sucesso.
+*****************************************************************************/
 void mutex(char op, pthread_mutex_t* lock){
 	int err = 0;
 
@@ -139,11 +217,23 @@ void mutex(char op, pthread_mutex_t* lock){
 	}
 
 	if(err){
-		fprintf(stderr, "Erro com lock/unlock mutex");
+		fprintf(stderr, "Erro lock/unlock com mutex");
 		exit(EXIT_FAILURE);
 	}
 }
 
+/******************************************************************************
+* void semaphore(char op, sem_t* sem)
+*
+* Argumentos: char op: escolha entre 'wait' e 'post'
+*			  sem_t* sem* lock: identificador;
+*
+* Retorno:  void;
+*
+* Descrição: Função que faz sem_(op), sendo op wait, ou post dependendo se
+* queremos incrementar ou decrementar o semáforo. Verifica se tanto os sem_wait
+* como sem_post foram efectuados com sucesso.
+*****************************************************************************/
 void semaphore(char op, sem_t* sem){
 	int err = 0;
 
@@ -159,5 +249,6 @@ void semaphore(char op, sem_t* sem){
 
 	if(err){												//Não fazemos exit() porque pode acontecer um sem_post a uma thread q tenha acabado de sair
 		fprintf(stderr, "Erro com wait/post sem");
+		exit(EXIT_FAILURE);
 	}
 }

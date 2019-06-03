@@ -1,13 +1,27 @@
+/******************************************************************************
+* 						2018/2019 - Programação de Sistemas
+*
+* Elementos do Grupo: Francisco Melo Nº 86998
+*					  Inês Moreira Nº 88050
+*
+* SECÇÃO: CLIENTE
+* FICHEIRO: UI_library.c
+*
+* Funcionalidades: 
+*	- Funções de SDL que escrevem as strings no tabuelrio e pintam o elemento 
+* do tabuleiro com a cor correta;
+*	- Para reiniciar o jogo repinta todas as peças do tabuleiro com a cor inicial.
+*****************************************************************************/
 #include "UI_library.h"
 #include "client.h"
 
 extern int dim;
 
-int screen_width;
-int screen_height;
-int n_ronw_cols;
-int row_height;
-int col_width;
+int screen_width;					//Largura da janela
+int screen_height;					//Comprimento da janela
+int n_ronw_cols;					//Numero de linhas e colunas (tabuleiro quadrado)
+int row_height;						//Comprimento das linhas
+int col_width;						//Comprimento das colunas
 
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
@@ -114,6 +128,14 @@ void closeBoardWindows(){
 	SDL_Quit();
 }
 
+/******************************************************************************
+* void resetBoard()
+* Argumentos: null
+*
+* Retorno:  void
+*
+* Descrição: Função que limpa o board colocando todas as peças a branco
+*****************************************************************************/
 void resetBoard(){
 	int i, j;
 

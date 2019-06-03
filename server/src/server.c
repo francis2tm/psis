@@ -22,19 +22,19 @@ pthread_rwlock_t rwlock_stack_head;
 pthread_rwlock_t rwlock_stack;
 
 int main(int argc, char** argv){
-	struct sockaddr_un client_addr;
+	struct sockaddr_in local_addr;
+	struct sockaddr_in client_addr;
 	socklen_t size_addr = 0;
 	int client_fd;
 	int server_fd;
 	
+
 	initSigHandlers();					//Definir os sig handlers
 	processArgs(argc, argv);			//Processar e verificar o dim recebido pelos args
 
-	unlink(SERVER_ADDR);
-
 	initBoard(0);						//Alocar e preencher a board
 	initSync();							//Inicializar sync (locks)
-	server_fd = initSocket(size_addr);	//Setup socket
+	server_fd = initSocket(&local_addr);	//Setup socket
 
 	//Main thread só aceita novas conexões
 	while(!end_flag){
@@ -74,7 +74,8 @@ int main(int argc, char** argv){
 		}
 	}
 	deleteBoard();					//Libertar o board
-
+	close(server_fd);
+	
 	sleep(1);
 	return EXIT_SUCCESS;
 }

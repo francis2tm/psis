@@ -1,3 +1,15 @@
+/******************************************************************************
+* 						2018/2019 - Programação de Sistemas
+*
+* Elementos do Grupo: Francisco Melo Nº 86998
+*					            Inês Moreira Nº 88050
+*
+* SECÇÃO: SERVIDOR
+* FICHEIRO: player_manage.h
+*
+* Descrição: Contém a declaração das funções presentes no ficheiro "player_manage.c"
+* bem como a declaração da estrutura responsável por guardar os jogadores vencedores.
+*****************************************************************************/
 #ifndef _PLAYER_MANAGE_H
 #define _PLAYER_MANAGE_H
 

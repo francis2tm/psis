@@ -1,3 +1,21 @@
+/******************************************************************************
+* 						2018/2019 - Programação de Sistemas
+*
+* Elementos do Grupo: Francisco Melo Nº 86998
+*					  Inês Moreira Nº 88050
+*
+* SECÇÃO: SERVIDOR
+* FICHEIRO: player_manage.c
+*
+* Funcionalidades: 
+*	-Criar um novo jogador na lista de jogadores;
+*	-Eliminar um jogador da lista de jogadores;
+*	-Gerar cores para os jogadores;
+*	-Determinar o(s) vencedor(es);
+*	-Criar lista com o(s) jogador(es) vencedor(es);
+*	-Eliminar lista com o o(s) jogador(es) vencedor(es).
+*****************************************************************************/
+
 #include "player_manage.h"
 #include "client_handler.h"
 #include "utils.h"
@@ -13,7 +31,16 @@ extern pthread_rwlock_t rwlock_score;
 extern Score_List score;
 extern int n_players;
 
-//Função geral que faz o processo completo de criar um jogador
+/******************************************************************************
+* void createPlayer(int client_fd);
+*
+* Argumentos: int client_fd: identificador do novo cliente;
+*
+* Retorno:  void;
+* 
+* Descrição: Função que faz o processo geral de criar um novo jogador criando assim
+* uma thread para este novo jogador.
+*****************************************************************************/
 void createPlayer(int client_fd){
 	pthread_t thread_id;
 	Node_Client* client_data = NULL;
@@ -34,7 +61,16 @@ void createPlayer(int client_fd){
 
 }
 
-//Adiciona um nó na lista de players
+/******************************************************************************
+* void insertPlayer(Node_Client* aux)
+*
+* Argumentos: Node_Client* aux: nó do novo cliente a inserir;
+*
+* Retorno:  void;
+* 
+* Descrição: Função que adiciona um cliente à lista de clientes (inserção pela
+* head).
+*****************************************************************************/
 void insertPlayer(Node_Client* aux){
 
 	aux->prev = NULL;								//Meter a NULL pq inserimos pela cabeça
@@ -51,7 +87,16 @@ void insertPlayer(Node_Client* aux){
     rwLock(UNLOCK, &rwlock_stack_head);
 }
 
-//Apaga 1 elemento da lista de clientes, a função foi escrita de modo a que thread tenha os locks o menos tempo possível 
+/******************************************************************************
+* void deleteNode(Node_Client* deletingNode)
+*
+* Argumentos: Node_Client* deletingNode: nó do cliente que de se desconectou;
+*
+* Retorno:  void;
+* 
+* Descrição: Função que após um cliente se desconectar, o elimina da lista de
+* jogadores;
+*****************************************************************************/
 void deleteNode(Node_Client* deletingNode){
 
 	//Ver se estamos a apagar a head, para isso temos que dar lock na rwlock da head
@@ -91,7 +136,15 @@ void deleteNode(Node_Client* deletingNode){
 	free(deletingNode);			//free fora da região crítica porque não é necessário estar
 }
 
-//Apaga a lista de clientes
+/******************************************************************************
+* void deleteList()
+*
+* Argumentos: void;
+*
+* Retorno:  void;
+* 
+* Descrição: Função que apaga a lista de clientes.
+*****************************************************************************/
 void deleteList(){
     Node_Client* aux;
     Node_Client* next;
@@ -99,7 +152,7 @@ void deleteList(){
 	rwLock(W_LOCK, &rwlock_stack);
     for(aux = head; aux != NULL; aux = next){
         next = aux->next;
-		shutdown(aux->sock_fd, SHUT_RDWR);				//Serve somente para a thread correspondente à socket ficar desbloqueada no read()
+		shutdown(aux->sock_fd, SHUT_RDWR);				//Serve somente para a thread correspondente à sockeada no read()t ficar desbloque
 		close(aux->sock_fd);
         free(aux);
     }
@@ -107,7 +160,15 @@ void deleteList(){
 	rwLock(UNLOCK, &rwlock_stack);
 }
 
-//Gera uma cor com uma ordem predefinida -> este algoritmo gera 34 cores diferentes, logo, o numero max de jogadores é 34
+/******************************************************************************
+* void generateColor(char color[])
+*
+* Argumentos: char color[]: vetor com nova cor;
+*
+* Retorno:  void;
+* 
+* Descrição: Gera uma cor para um jogador com uma dada ordem (34 cores no máximo).
+*****************************************************************************/
 void generateColor(char color[]){
 	mutex(LOCK, &mutex_color);
 	switch(prox_RGB){
@@ -145,6 +206,15 @@ void generateColor(char color[]){
 	mutex(UNLOCK, &mutex_color);
 }
 
+/******************************************************************************
+* void insertScore(int _sock_fd)
+*
+* Argumentos: int _sock_fd: idenificador do jogador;
+*
+* Retorno: void;
+* 
+* Descrição: Insere o score de um novo jogador na lista corresponde ao record.
+*****************************************************************************/
 void insertScore(int _sock_fd){
 	Score_Node* aux = NULL;
 
@@ -157,6 +227,15 @@ void insertScore(int _sock_fd){
     score.head = aux;
 }
 
+/******************************************************************************
+* void deleteScore()
+*
+* Argumentos: void;
+*
+* Retorno: void;
+* 
+* Descrição: Elimina a lista antiga com o(s) jogador(es) do score máximo antigo.
+*****************************************************************************/
 void deleteScore(){
 	Score_Node* aux;
 	Score_Node* next;
@@ -168,7 +247,17 @@ void deleteScore(){
 	score.head = NULL;
 }
 
-//Função invocada por todas as threads no final do jogo que determina o(s) vencedor(es)
+/******************************************************************************
+* void tryUpdateScore(int n_corrects, int sock_fd)
+*
+* Argumentos: int n_corrects: pontuação do jogador;
+*			  int sock_fd: identificador do jogador;
+*
+* Retorno: void;
+* 
+* Descrição: Função invocada por todas as threads no final do jogo que determina
+* o(s) jogador(es) vencedores.
+*****************************************************************************/
 void tryUpdateScore(int n_corrects, int sock_fd){
 
 	rwLock(R_LOCK, &rwlock_score);
@@ -199,9 +288,9 @@ void tryUpdateScore(int n_corrects, int sock_fd){
 	}
 
 
-	rwLock(R_LOCK, &rwlock_stack);			//Para ler o n_players, visto que players podem-se disconectar durante o processo de ranking pontuacao
+	rwLock(R_LOCK, &rwlock_stack);						//Para ler o n_players, visto que players podem-se disconectar durante o processo de ranking pontuacao
 	rwLock(R_LOCK, &rwlock_score);
-	if(score.count >= n_players){					//Já todos os scores de todos os clientes foram processados
+	if(score.count >= n_players){						//Já todos os scores de todos os clientes foram processados
 		semaphore(POST, score.sem_pointer);				//Avisar a thread "responsável" que o vencedor já foi escolhido
 	}
 

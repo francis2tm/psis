@@ -1,3 +1,16 @@
+/******************************************************************************
+* 						2018/2019 - Programação de Sistemas
+*
+* Elementos do Grupo: Francisco Melo Nº 86998
+*					            Inês Moreira Nº 88050
+*
+* SECÇÃO: SERVIDOR
+* FICHEIRO: board_library.h
+*
+* Descrição: Contém a declaração das funções presentes no ficheiro "board_library.c"
+* bem como a declaração da estrutura responsável pelo armazenamento das 
+* escolhas do jogador e do dono de uma carta no caso de esta já estar virada
+*****************************************************************************/
 #ifndef _BOARD_LIBRARY_H
 #define _BOARD_LIBRARY_H
 
