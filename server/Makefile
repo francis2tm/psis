@@ -5,7 +5,7 @@
 TARGET_EXEC ?=server
 LDFLAGS = -lpthread
 CFLAGS = -g -Wall -std=gnu11
-CC =gcc 
+CC =gcc
 
 BUILD_DIR ?= ./build
 SRC_DIRS ?= ./src
