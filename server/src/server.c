@@ -15,6 +15,8 @@ Score_List score = {.top_score = 0, .head = NULL, .count = 0};//Número de peça
 char reset_flag = 0;										//Flag que fica a 1 durante o período (10s) do rest
 
 volatile char end_flag = 0;									//Flag que indica quando for para terminar o servidor
+
+pthread_rwlock_t rwlock_end;
 pthread_rwlock_t rwlock_score;
 pthread_mutex_t mutex_color;
 pthread_mutex_t mutex_reset;
@@ -40,7 +42,7 @@ int main(int argc, char** argv){
 	while(!end_flag){
 		printf("Ready to accept connections\n");	
 		if((client_fd = accept(server_fd, (struct sockaddr*)&client_addr, &size_addr)) == -1){	//Verficiar se não houve erro a fazer accept
-			if(end_flag){
+			if(end_flag){						//N é preciso rw_lock_rdlock pois esta thread é a unica que pode escrever
 				break;
 			}
 			perror("accept");
@@ -82,5 +84,7 @@ int main(int argc, char** argv){
 
 //Signal Handler para o SIGINT
 void handleSigInt(){ 
+	rwLock(W_LOCK, &rwlock_end);
 	end_flag = 1;
+	rwLock(UNLOCK, &rwlock_end);
 } 

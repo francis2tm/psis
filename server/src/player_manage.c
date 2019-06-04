@@ -167,7 +167,7 @@ void deleteList(){
 *
 * Retorno:  void;
 * 
-* Descrição: Gera uma cor para um jogador com uma dada ordem (34 cores no máximo).
+* Descrição: Gera uma cor para um jogador com uma dada ordem (67 cores no máximo).
 *****************************************************************************/
 void generateColor(char color[]){
 	mutex(LOCK, &mutex_color);
