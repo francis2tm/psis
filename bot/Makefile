@@ -4,7 +4,7 @@
 TARGET_EXEC ?=client
 LDFLAGS = `pkg-config --cflags --libs sdl2` -lSDL2_ttf -lpthread
 CFLAGS = -g -Wall -std=c11
-CC =gcc
+CC =gcc 
 
 BUILD_DIR ?= ./build
 SRC_DIRS ?= ./src
