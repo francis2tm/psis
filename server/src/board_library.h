@@ -20,7 +20,7 @@
 #include <pthread.h>
 
 
-typedef struct Board_Place{
+typedef struct Board_Place_Struct{
     char str[3];    
     char is_up;     //0 - se a carta estiver virada para baixo (carta branca)
                     //1 se a carta estiver UP ou LOCKED (carta não branca)
@@ -29,15 +29,15 @@ typedef struct Board_Place{
     pthread_mutex_t mutex_board;
 }Board_Place;
 
-typedef struct Play_Response{
+typedef struct Play_Response_Struct{
     int code;  
+            //resp.code gerados no boardPlay()
             // 0 - filled
             // 1 - 1st play
             // 2 2nd - same plays
             // 3 END
             // -1 2nd - virar primeira jogada para baixo
             // -2 2nd - combinação errada, meter as cartas vermelhas durante 2s
-            // -4 2nd - combinação errada, virar as cartas para branco  ao fim dos 2s
     int play1[2];   //Guarda as coordenadas (x,y) da primeira jogada
     int play2[2];   //Guarda as coordenadas (x,y) da segunda jogada
     char color[3];  //Guarda a cor do jogador que fez a jogada

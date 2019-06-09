@@ -13,7 +13,7 @@ dim por dim para guardar as posições do board.
 
 - //Sempre que um jogador se desconecta, metemos o node correspondente da lista de jogadores no final de modo a ter sempre a lista de jogadores ordenada de acordo com o state
 
-- //Passamos um ponteiro como argumento para o handler de cada cliente pq a thread de cada clietne precisa de saber para além do respetivo sock_fd, o seu node na lista de jogadores (para depois fazer o swap se se disconectar para manter a lista ordenada)
+- Passamos um ponteiro como argumento para o handler de cada cliente pq a thread de cada clietne precisa de saber para além do respetivo sock_fd, o seu node na lista de jogadores (para depois fazer o swap se se disconectar para manter a lista ordenada)
 
 - Cores: Dá para fazer 11 ciclos ate G chegar a 245, cada ciclo dá 6 cores. E ainda dá mais uma cor pq ainda dá para somar o R (R fica 250 < 255), logo, 
     dá para fazer 6*11 +1 = 67 cores.
@@ -26,10 +26,11 @@ do little end e big end, no entanto, mas metemos o htonl e ntohl
 - Explicar como fizemos para aquando o CTRL+C meter todas as threads a libertarem tudo
 
 - Não ha risco de deadlocks pois não há nenhuns 2 excertos de código em que uma thread tente por ex:
+THREAD_1:
 lock(A)
 lock(B)
 
-e outra thread a tentar:
+THREAD_2:
 lock(B)
 lock(A)
 

@@ -101,7 +101,7 @@ void deleteNode(Node_Client* deletingNode){
 
 	//Ver se estamos a apagar a head, para isso temos que dar lock na rwlock da head
 	rwLock(R_LOCK, &rwlock_stack_head);
-	if(deletingNode == head){				//deletingNode = head
+	if(deletingNode == head){
 		rwLock(UNLOCK, &rwlock_stack_head);
 		
 		rwLock(W_LOCK, &rwlock_stack_head);
@@ -291,7 +291,7 @@ void tryUpdateScore(int n_corrects, int sock_fd){
 	rwLock(R_LOCK, &rwlock_stack);						//Para ler o n_players, visto que players podem-se disconectar durante o processo de ranking pontuacao
 	rwLock(R_LOCK, &rwlock_score);
 	if(score.count >= n_players){						//Já todos os scores de todos os clientes foram processados
-		semaphore(POST, score.sem_pointer);				//Avisar a thread "responsável" que o vencedor já foi escolhido
+		semaphore(POST, score.sem_pointer);				//Avisar a thread master que o vencedor já foi escolhido
 	}
 
 	rwLock(UNLOCK, &rwlock_score);			

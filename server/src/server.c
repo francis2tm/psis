@@ -12,7 +12,7 @@ char prox_RGB = 0;											//Variável global utilizada pela generateColor()
 Node_Client* head = NULL;									//Head do stack dos jogadores
 int n_players = 0;											//Numero total de jogadores conectado
 Score_List score = {.top_score = 0, .head = NULL, .count = 0};//Número de peças locked ao longo do jogo & score máximo (somente atualizado no final do jogo)
-char reset_flag = 0;										//Flag que fica a 1 durante o período (10s) do rest
+char reset_flag = 0;										//Flag que fica a 1 durante o período (10s) do reset
 
 volatile char end_flag = 0;									//Flag que indica quando for para terminar o servidor
 

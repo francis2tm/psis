@@ -41,7 +41,6 @@ typedef struct Score_List_Struct{
 }Score_List;
 
 
-
 void createPlayer(int client_fd);
 void insertPlayer(Node_Client* aux);
 void deleteNode(Node_Client* deletingNode);
