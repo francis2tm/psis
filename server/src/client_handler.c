@@ -94,8 +94,8 @@ void* playerHandler(Node_Client* client_data){
 			
 			broadcastBoard(common_data.resp, common_data.buff_send);						//Mandar a todos os jogadores a play processada (enviar o resp)
 			
-			if(n_play == 1){															//Se tivermos na primeira jogada
-				if(!poll(&poll_sock_fd, 1, 5000)){											//Ativar o timer 5s
+			if(n_play == 1){											//Se tivermos na primeira jogada
+				if(!poll(&poll_sock_fd, 1, 5000)){						//Ativar o timer 5s
 					mutex(LOCK, &common_data.mutex_timer);							//Teoricamente a thread_timer não irá estar ativa, mas evitar race condition no resp
 					
 					mutex(LOCK, &board[common_data.resp.play1[0]][common_data.resp.play1[1]].mutex_board);
@@ -111,6 +111,7 @@ void* playerHandler(Node_Client* client_data){
 					n_play = 0;
 					printf("poll timed out\n");
 				}
+				continue;
 			}else if(common_data.resp.code == -2){												//Se o jogador errou na combinação, ativar timer 2s
 				semaphore(POST, &common_data.sem);														//Ativar thread de timer 
 				continue;
@@ -131,7 +132,7 @@ void* playerHandler(Node_Client* client_data){
 	
 	//Cliente disconectou-se ou o servidor está a terminar
 	//Destruição da thread timer
-	mutex(LOCK, &common_data.mutex_timer);		//Ter a certeza que o thread de timer não fica com nenhuma lock antes de morrer -> esperar que ela faça tudo o que tem a fazer
+	mutex(LOCK, &common_data.mutex_timer);	//Ter a certeza que o thread de timer não fica com nenhuma lock antes de morrer -> esperar que ela faça tudo o que tem a fazer
 	common_data.n_corrects = CANCEL_TIMER_THREAD;
 	mutex(UNLOCK, &common_data.mutex_timer);		//Não é preciso pois a lock vai ser agora destruída, é meramente uma formalidade
 	semaphore(POST, &common_data.sem);							//Ativar a thread timer para ela se auto destruir
@@ -235,7 +236,7 @@ void resetMaster(Cmn_Thr_Data* common_data){
 	broadcastThreads(common_data->sock_fd);				//Notificar as outras threads do reset, meter as outras threads a descartar jogadas de jogadores
 	semaphore(WAIT, &common_data->sem);						//Esperar que as threads escolham o(s) vencedor(es)
 
-	mutex(LOCK, &common_data->mutex_timer);			//Mutex para não deixar que o resp ser mudado pela outra thread
+	mutex(LOCK, &common_data->mutex_timer);
 	common_data->resp.code = 11;
 	sendGameOver(common_data->resp, common_data->buff_send, common_data->sock_fd);	//Notificar ao jogador desta thread que o jogo acabou
 	common_data->resp.code = 10;

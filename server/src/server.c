@@ -78,8 +78,7 @@ int main(int argc, char** argv){
 	deleteBoard();					//Libertar o board
 	close(server_fd);
 	
-	sleep(1);
-	return EXIT_SUCCESS;
+	pthread_exit(NULL);
 }
 
 //Signal Handler para o SIGINT

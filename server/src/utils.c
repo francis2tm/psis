@@ -187,7 +187,7 @@ void rwLock(char op, pthread_rwlock_t* lock){
 	}
 
 	if(err){
-		fprintf(stderr, "Erro com lock/unlock rwlock sem");
+		//fprintf(stderr, "Erro com lock/unlock rwlock sem");
 		exit(EXIT_FAILURE);
 	}
 }
@@ -217,7 +217,7 @@ void mutex(char op, pthread_mutex_t* lock){
 	}
 
 	if(err){
-		fprintf(stderr, "Erro lock/unlock com mutex");
+		//fprintf(stderr, "Erro lock/unlock com mutex");
 		exit(EXIT_FAILURE);
 	}
 }
